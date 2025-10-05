@@ -4,8 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
 import { z } from 'zod';
 
-// ✅ IMPROVED SCHEMA: Handles real-world database inconsistencies
+// UPDATED SCHEMA: Now includes both startDate and endDate
 const StartAuctionSchema = z.object({
+  startDate: z.string().datetime(),
   endDate: z.string().datetime(),
   holidayName: z.string().min(1, 'Holiday name is required'),
   services: z.array(z.string()).min(1, 'At least one service is required'),
@@ -13,13 +14,19 @@ const StartAuctionSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     service: z.string().min(1, 'Service is required'),
     honor: z.string().min(1, 'Honor is required'),
-    // ✅ ACCEPT both null and undefined, normalize to null
     description: z.string().nullish().transform(val => val ?? null),
-    // ✅ COERCE strings to numbers (handles "18.00" → 18)
     startingBid: z.coerce.number().min(0),
     minimumIncrement: z.coerce.number().min(1).default(1),
     displayOrder: z.number(),
   })).min(1, 'At least one item is required')
+}).refine((data) => {
+  // Validate that startDate is before endDate
+  const start = new Date(data.startDate);
+  const end = new Date(data.endDate);
+  return start < end;
+}, {
+  message: 'Start date must be before end date',
+  path: ['startDate'],
 });
 
 export async function POST(request: Request) {
@@ -40,10 +47,11 @@ export async function POST(request: Request) {
       .update({ status: 'ended' })
       .eq('status', 'active');
     
-    // Create new auction with holiday config
+    // UPDATED: Create new auction with both start_time and end_time
     const { data: auction, error: auctionError } = await supabase
       .from('auction_config')
       .insert({
+        start_time: validatedData.startDate,
         end_time: validatedData.endDate,
         status: 'active',
         holiday_name: validatedData.holidayName,
@@ -60,8 +68,8 @@ export async function POST(request: Request) {
       title: item.title,
       service: item.service,
       honor: item.honor,
-      description: item.description, // Already normalized to null by schema
-      starting_bid: item.startingBid, // Already coerced to number by schema
+      description: item.description,
+      starting_bid: item.startingBid,
       current_bid: item.startingBid,
       minimum_increment: item.minimumIncrement,
       display_order: item.displayOrder,
