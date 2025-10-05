@@ -3,7 +3,8 @@
 
 interface PaymentModalProps {
   item: {
-    title: string;
+    service: string;
+    honor: string;
     current_bid: number;
   };
   winner: {
@@ -41,7 +42,7 @@ export function PaymentModal({ item, winner, onClose }: PaymentModalProps) {
             Choose Payment Method
           </h2>
           <div className="text-center space-y-1">
-            <p className="text-sm text-[#5C5347]">{item.title}</p>
+            <p className="text-sm text-[#5C5347]">{item.service} - {item.honor}</p>
             <p className="text-lg font-bold text-[#2C2416]">Winner: {winner.full_name}</p>
             <p className="text-2xl font-bold text-[#4A7C7E]">${item.current_bid.toLocaleString()}</p>
           </div>
@@ -49,7 +50,7 @@ export function PaymentModal({ item, winner, onClose }: PaymentModalProps) {
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           {paymentMethods.map((method) => (
-            <a
+            
               key={method.name}
               href={method.url}
               target="_blank"

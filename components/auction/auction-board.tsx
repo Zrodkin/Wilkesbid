@@ -9,7 +9,6 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 interface AuctionItemData {
   id: string;
-  title: string;
   service: string;
   honor: string;
   description?: string;
@@ -56,7 +55,6 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
               .from('auction_items')
               .select(`
                 id,
-                title,
                 service,
                 honor,
                 description,
@@ -102,13 +100,12 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
   }, [supabase]);
 
   const filteredItems = items.filter(
-    (item) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.honor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.service?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.current_bidder?.full_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  (item) =>
+    item.service?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.honor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.current_bidder?.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+);
 
   const sortedItems = sortFilter
     ? [...filteredItems].sort((a, b) => {

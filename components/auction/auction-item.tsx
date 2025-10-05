@@ -8,6 +8,8 @@ import { ChevronDown, ChevronUp, CreditCard, CheckCircle } from 'lucide-react';
 
 interface AuctionItemData {
   id: string;
+  service: string;
+  honor: string;
   description?: string;
   current_bid: number;
   starting_bid: number;
@@ -49,21 +51,21 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
 
   return (
     <>
-      <div className="w-full bg-neutral-800 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:border-[#C9A961]/50 transition-all">
-        {/* Price and Title */}
-        <div className="space-y-2 mb-4">
-          <div className="text-3xl sm:text-4xl font-bold text-[#C9A961]">
-            ${item.current_bid.toLocaleString()}
-          </div>
-          <div className="text-base sm:text-lg text-white font-medium leading-tight">
-            {item.title}
-          </div>
-          {item.description && (
-            <div className="text-sm text-neutral-400">
-              {item.description}
-            </div>
-          )}
-        </div>
+    <div className="w-full bg-neutral-800 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:border-[#C9A961]/50 transition-all">
+  {/* Price and Service/Honor */}
+  <div className="space-y-2 mb-4">
+    <div className="text-3xl sm:text-4xl font-bold text-[#C9A961]">
+      ${item.current_bid.toLocaleString()}
+    </div>
+    <div className="text-base sm:text-lg text-white font-medium leading-tight">
+      {item.service} - {item.honor}
+    </div>
+    {item.description && (
+      <div className="text-sm text-neutral-400">
+        {item.description}
+      </div>
+    )}
+  </div>
 
         {/* Winner/Bidder Section */}
         {hasWinner ? (

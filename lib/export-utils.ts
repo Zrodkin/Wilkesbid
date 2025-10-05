@@ -1,7 +1,6 @@
 // lib/export-utils.ts
 interface ExportItem {
   id: string;
-  title?: string;
   service?: string;
   honor?: string;
   description?: string;
@@ -38,11 +37,9 @@ export function exportToCSV(items: ExportItem[], filename: string) {
 }
 
 export function exportToExcel(items: ExportItem[], filename: string) {
-  // Simple Excel export using HTML table method
-  const headers = ['Title', 'Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
+  const headers = ['Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
   
   const rows = items.map(item => [
-    item.title || '',
     item.service || '',
     item.honor || '',
     item.current_bid.toString(),
@@ -75,11 +72,9 @@ export function exportToExcel(items: ExportItem[], filename: string) {
 }
 
 export function exportToPDF(items: ExportItem[], filename: string) {
-  // Create a printable HTML page
-  const headers = ['Title', 'Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
+  const headers = ['Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
   
   const rows = items.map(item => [
-    item.title || '',
     item.service || '',
     item.honor || '',
     `$${item.current_bid.toLocaleString()}`,
