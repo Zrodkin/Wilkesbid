@@ -7,14 +7,14 @@ import Image from 'next/image';
 export default async function Home() {
   const supabase = await createClient();
   
-  // Get active auction - FIXED: Use maybeSingle() and order by created_at
+  // Get active auction
   const { data: auction, error: auctionError } = await supabase
     .from('auction_config')
     .select('*')
     .in('status', ['active', 'ended'])
     .order('created_at', { ascending: false })
     .limit(1)
-    .maybeSingle(); // ✅ Changed from .single() to .maybeSingle()
+    .maybeSingle();
   
   if (auctionError) {
     console.error('Error loading auction:', auctionError);
@@ -32,11 +32,10 @@ export default async function Home() {
   }
   
   // Get auction items
-  const { data: items } = await supabase
+  const { data: items, error: itemsError } = await supabase
     .from('auction_items')
     .select(`
       id,
-      title,
       service,
       honor,
       description,
@@ -49,6 +48,10 @@ export default async function Home() {
     `)
     .eq('auction_id', auction.id)
     .order('display_order');
+
+  if (itemsError) {
+    console.error('Error loading items:', itemsError);
+  }
 
   // Transform the data to fix current_bidder
   const transformedItems = items?.map(item => ({

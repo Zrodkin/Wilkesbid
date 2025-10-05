@@ -84,7 +84,8 @@ export async function sendWinnerNotifications(auctionId?: string) {
       .from('auction_items')
       .select(`
         id,
-        title,
+        service,
+        honor,
         current_bid,
         current_bidder_id,
         auction_id,
@@ -128,7 +129,7 @@ export async function sendWinnerNotifications(auctionId?: string) {
         };
       }
       acc[email].items.push({
-        title: item.title,
+        title: `${item.service} - ${item.honor}`, // ✅ Changed from item.title
         amount: item.current_bid
       });
       acc[email].total += Number(item.current_bid);
@@ -162,11 +163,9 @@ export async function sendWinnerNotifications(auctionId?: string) {
       
       console.log(`Preparing to send winner email to ${email}...`);
       
-      console.log(`Preparing to send winner email to ${email}...`);
-      
       try {
         const itemsList = data.items.map((item) => 
-          `<li>${item.title}: <strong>${item.amount.toFixed(2)}</strong></li>`
+          `<li>${item.title}: <strong>$${item.amount.toFixed(2)}</strong></li>`
         ).join('');
         
         console.log(`Sending email via Resend to ${email}...`);
