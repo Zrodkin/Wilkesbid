@@ -1,4 +1,3 @@
-// components/admin/admin-dashboard.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -6,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AuctionSetup } from './auction-setup';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { Search, LogOut, ExternalLink } from 'lucide-react';
 
 interface Auction {
   id: number;
@@ -134,21 +134,34 @@ export function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F5F3EF] flex items-center justify-center">
-        <div className="text-[#5C5347]">Loading...</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-neutral-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F3EF]">
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-[#2C2416]">Admin Dashboard</h1>
-          <button
+    <div className="min-h-screen bg-black">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-[#C9A961]">Admin Dashboard</h1>
+          <p className="text-neutral-400 mt-1">Manage auction bids in real-time</p>
+        </div>
+
+        {/* Buttons below header */}
+        <div className="flex gap-2 mb-8">
+          <a href="/" target="_blank" rel="noopener noreferrer">
+            <button className="px-4 py-2 border border-neutral-700 text-neutral-400 bg-transparent rounded-md hover:bg-neutral-900 transition-colors flex items-center gap-2">
+              <ExternalLink className="h-4 w-4" />
+              View Site
+            </button>
+          </a>
+          <button 
             onClick={handleLogout}
-            className="px-4 py-2 bg-[#4A7C7E] text-white rounded-lg hover:bg-[#3A6C6E] transition-colors font-medium"
+            className="px-4 py-2 border border-neutral-700 text-neutral-400 bg-transparent rounded-md hover:bg-neutral-900 transition-colors flex items-center gap-2"
           >
+            <LogOut className="h-4 w-4" />
             Logout
           </button>
         </div>
@@ -159,42 +172,38 @@ export function AdminDashboard() {
           <>
             {/* Stats */}
             <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white border-2 border-[#4A7C7E] rounded-lg p-6">
-                <div className="text-[#5C5347] text-sm font-medium">Status</div>
-                <div className="text-2xl font-bold text-[#2C2416] mt-1 uppercase">
-                  {auction.status}
-                </div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+                <div className="text-neutral-400 text-sm">Status</div>
+                <div className="text-3xl font-bold text-white mt-1 uppercase">{auction.status}</div>
               </div>
-              <div className="bg-white border-2 border-[#4A7C7E] rounded-lg p-6">
-                <div className="text-[#5C5347] text-sm font-medium">Total Items</div>
-                <div className="text-2xl font-bold text-[#2C2416] mt-1">{items.length}</div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+                <div className="text-neutral-400 text-sm">Total Items</div>
+                <div className="text-3xl font-bold text-white mt-1">{items.length}</div>
               </div>
-              <div className="bg-white border-2 border-[#4A7C7E] rounded-lg p-6">
-                <div className="text-[#5C5347] text-sm font-medium">Items with Bids</div>
-                <div className="text-2xl font-bold text-[#2C2416] mt-1">{itemsWithBids}</div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+                <div className="text-neutral-400 text-sm">Items with Bids</div>
+                <div className="text-3xl font-bold text-white mt-1">{itemsWithBids}</div>
               </div>
-              <div className="bg-white border-2 border-[#4A7C7E] rounded-lg p-6">
-                <div className="text-[#5C5347] text-sm font-medium">Total Bid Amount</div>
-                <div className="text-2xl font-bold text-[#4A7C7E] mt-1">
-                  ${totalBids.toLocaleString()}
-                </div>
+              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+                <div className="text-neutral-400 text-sm">Total Bid Amount</div>
+                <div className="text-3xl font-bold text-[#C9A961] mt-1">${totalBids.toLocaleString()}</div>
               </div>
             </div>
 
             {/* Auction Info */}
-            <div className="bg-white border-2 border-[#4A7C7E] rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-[#2C2416]">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold mb-4 text-[#C9A961]">
                 Auction Information
               </h2>
-              <p className="text-[#5C5347] mb-2">
-                End Time: <span className="font-medium text-[#2C2416]">
+              <p className="text-neutral-400 mb-2">
+                End Time: <span className="font-medium text-white">
                   {new Date(auction.end_time).toLocaleString()}
                 </span>
               </p>
 
               {auction.status === 'active' && (
-                <div className="mt-4 p-4 bg-[#4A7C7E]/10 rounded-lg border border-[#4A7C7E]/30">
-                  <p className="text-[#2C2416] mb-3">
+                <div className="mt-4 p-4 bg-[#C9A961]/10 rounded-lg border border-[#C9A961]/30">
+                  <p className="text-neutral-300 mb-3">
                     Auction is currently active. Monitor bids in real-time on the main page.
                   </p>
                   <div className="flex gap-4">
@@ -202,7 +211,7 @@ export function AdminDashboard() {
                       href="/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block px-4 py-2 bg-[#4A7C7E] text-white rounded-lg hover:bg-[#3A6C6E] transition-colors font-medium"
+                      className="inline-block px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
                     >
                       View Live Auction
                     </a>
@@ -217,15 +226,15 @@ export function AdminDashboard() {
               )}
 
               {auction.status === 'ended' && (
-                <div className="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-300">
-                  <p className="text-[#2C2416] mb-3">
+                <div className="mt-4 p-4 bg-neutral-800 rounded-lg border border-neutral-700">
+                  <p className="text-neutral-300 mb-3">
                     Auction has ended. Winners have been notified by email.
                   </p>
                   <a
                     href="/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-block px-4 py-2 bg-[#4A7C7E] text-white rounded-lg hover:bg-[#3A6C6E] transition-colors font-medium"
+                    className="inline-block px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
                   >
                     View Results
                   </a>
@@ -235,43 +244,46 @@ export function AdminDashboard() {
 
             {/* Search */}
             <div className="mb-6">
-              <input
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 border-2 border-[#4A7C7E] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#4A7C7E]/50 bg-white text-[#2C2416]"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                <input
+                  type="text"
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50 text-white placeholder:text-neutral-500"
+                />
+              </div>
             </div>
 
             {/* Items Table */}
-            <div className="bg-white border-2 border-[#4A7C7E] rounded-lg overflow-hidden">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-[#4A7C7E] text-white">
+                  <thead className="bg-neutral-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Item</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Description</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Current Bid</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold">Starting Bid</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Item</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Description</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Current Bid</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Starting Bid</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className="divide-y divide-neutral-800">
                     {filteredItems.map((item, index) => (
                       <tr 
                         key={item.id} 
-                        className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                        className={index % 2 === 0 ? 'bg-neutral-900' : 'bg-neutral-800/50'}
                       >
-                        <td className="px-4 py-3 text-sm text-[#2C2416] font-medium">
+                        <td className="px-4 py-3 text-sm text-white font-medium">
                           {item.title}
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#5C5347]">
+                        <td className="px-4 py-3 text-sm text-neutral-300">
                           {item.description || '-'}
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#4A7C7E] font-semibold">
+                        <td className="px-4 py-3 text-sm text-[#C9A961] font-semibold">
                           ${item.current_bid.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-[#5C5347]">
+                        <td className="px-4 py-3 text-sm text-neutral-400">
                           ${item.starting_bid.toLocaleString()}
                         </td>
                       </tr>
