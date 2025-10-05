@@ -36,9 +36,8 @@ interface Auction {
 
 interface AuctionItemData {
   id: string;
-  title: string;
-  service?: string;
-  honor?: string;
+  service: string;
+  honor: string;
   description?: string;
   current_bid: number;
   starting_bid: number;
@@ -442,7 +441,6 @@ export function AdminDashboard() {
                 <table className="w-full">
                   <thead className="bg-neutral-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Title</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Service</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Honor</th>
                       <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Current Bid</th>
@@ -454,9 +452,8 @@ export function AdminDashboard() {
                   <tbody className="divide-y divide-neutral-800">
                     {filteredItems.map((item) => (
                       <tr key={item.id} className="hover:bg-neutral-800/50">
-                        <td className="px-4 py-3 text-sm text-white font-medium">{item.title}</td>
-                        <td className="px-4 py-3 text-sm text-neutral-300">{item.service || '-'}</td>
-                        <td className="px-4 py-3 text-sm text-neutral-300">{item.honor || '-'}</td>
+                        <td className="px-4 py-3 text-sm text-white font-medium">{item.service}</td>
+                        <td className="px-4 py-3 text-sm text-neutral-300">{item.honor}</td>
                         <td className="px-4 py-3 text-sm text-[#C9A961] font-semibold">${(item.current_bid || 0).toLocaleString()}</td>
                         <td className="px-4 py-3 text-sm text-neutral-300">{item.current_bidder?.full_name || 'No bids'}</td>
                         <td className="px-4 py-3 text-sm w-24">

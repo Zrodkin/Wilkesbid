@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 
 interface AuctionItem {
   id?: string;
-  title: string;
   service: string;
   honor: string;
   description?: string;
@@ -23,7 +22,6 @@ interface EditTemplateItemModalProps {
 }
 
 export function EditTemplateItemModal({ item, services, onClose, onItemUpdated }: EditTemplateItemModalProps) {
-  const [title, setTitle] = useState(item.title);
   const [service, setService] = useState(item.service);
   const [honor, setHonor] = useState(item.honor);
   const [description, setDescription] = useState(item.description || '');
@@ -32,8 +30,8 @@ export function EditTemplateItemModal({ item, services, onClose, onItemUpdated }
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title || !service || !honor) {
-      toast.error('Please fill in title, service, and honor');
+    if (!service || !honor) {
+      toast.error('Please fill in service and honor');
       return;
     }
 
@@ -45,7 +43,6 @@ export function EditTemplateItemModal({ item, services, onClose, onItemUpdated }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: item.id,
-          title,
           service,
           honor,
           description: description || null,
@@ -61,7 +58,6 @@ export function EditTemplateItemModal({ item, services, onClose, onItemUpdated }
 
       const updatedItem: AuctionItem = {
         ...item,
-        title,
         service,
         honor,
         description: description || undefined,
@@ -94,18 +90,7 @@ export function EditTemplateItemModal({ item, services, onClose, onItemUpdated }
         </div>
 
         <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1 text-neutral-400">
-              Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Shacharit Aliyah"
-              className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
-            />
-          </div>
+         
 
           <div>
             <label className="block text-sm font-medium mb-1 text-neutral-400">

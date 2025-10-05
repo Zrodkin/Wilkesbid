@@ -10,7 +10,6 @@ import { DateTimePicker } from '@/components/ui/date-time-picker';
 
 interface AuctionItem {
   id?: string;
-  title: string;
   service: string;
   honor: string;
   description?: string;
@@ -46,7 +45,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
   const [editingItem, setEditingItem] = useState<AuctionItem | null>(null);
 
   // Item form state
-  const [itemTitle, setItemTitle] = useState('');
   const [itemService, setItemService] = useState('');
   const [itemHonor, setItemHonor] = useState('');
   const [itemDescription, setItemDescription] = useState('');
@@ -193,13 +191,12 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
       return;
     }
 
-    if (!itemTitle || !itemService || !itemHonor) {
-      toast.error('Please fill in title, service, and honor');
+    if (!itemService || !itemHonor) {
+      toast.error('Please fill in service and honor');
       return;
     }
 
     const newItem: AuctionItem = {
-      title: itemTitle,
       service: itemService,
       honor: itemHonor,
       description: itemDescription || undefined,
@@ -215,7 +212,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           templateId: selectedTemplate.id,
-          title: newItem.title,
           service: newItem.service,
           honor: newItem.honor,
           description: newItem.description,
@@ -236,7 +232,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
       localStorage.setItem('auction_setup_items', JSON.stringify(updatedItems));
       
       // Reset form
-      setItemTitle('');
       setItemService('');
       setItemHonor('');
       setItemDescription('');
@@ -487,18 +482,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-neutral-400">Title</label>
-                  <input
-                    type="text"
-                    value={itemTitle}
-                    onChange={(e) => setItemTitle(e.target.value)}
-                    placeholder="e.g., Shacharit Aliyah"
-                    className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2 text-neutral-400">Service</label>
+                  <label className="block text-sm font-medium mb-2 text-neutral-400">Service *</label>
                   <select
                     value={itemService}
                     onChange={(e) => setItemService(e.target.value)}
@@ -514,7 +498,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2 text-neutral-400">Honor</label>
+                  <label className="block text-sm font-medium mb-2 text-neutral-400">Honor *</label>
                   <input
                     type="text"
                     value={itemHonor}

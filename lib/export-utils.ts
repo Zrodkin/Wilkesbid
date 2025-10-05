@@ -14,10 +14,9 @@ interface ExportItem {
 }
 
 export function exportToCSV(items: ExportItem[], filename: string) {
-  const headers = ['Title', 'Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
+  const headers = ['Service', 'Honor', 'Current Bid', 'Bidder Name', 'Bidder Email', 'Paid Status'];
   
   const rows = items.map(item => [
-    item.title || '',
     item.service || '',
     item.honor || '',
     item.current_bid.toString(),

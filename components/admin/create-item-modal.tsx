@@ -11,8 +11,7 @@ interface CreateItemModalProps {
   services: string[];
 }
 
-export function CreateItemModal({ onClose, onItemCreated, services }: CreateItemModalProps) {
-  const [title, setTitle] = useState('');
+export function CreateItemModal({ services, onClose, onItemCreated }: CreateItemModalProps) {
   const [service, setService] = useState('');
   const [honor, setHonor] = useState('');
   const [description, setDescription] = useState('');
@@ -21,8 +20,8 @@ export function CreateItemModal({ onClose, onItemCreated, services }: CreateItem
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async () => {
-    if (!title || !service || !honor) {
-      toast.error('Please fill in title, service, and honor');
+    if (!service || !honor) {
+      toast.error('Please fill in service and honor');
       return;
     }
 
@@ -33,7 +32,6 @@ export function CreateItemModal({ onClose, onItemCreated, services }: CreateItem
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title,
           service,
           honor,
           description: description || null,
@@ -43,15 +41,15 @@ export function CreateItemModal({ onClose, onItemCreated, services }: CreateItem
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create item');
+        throw new Error('Failed to create item');
       }
 
       toast.success('Item created successfully');
       onItemCreated();
+      onClose();
     } catch (error) {
       console.error('Create item error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create item');
+      toast.error('Failed to create item');
     } finally {
       setIsSubmitting(false);
     }

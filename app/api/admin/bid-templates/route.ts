@@ -29,7 +29,6 @@ export async function GET(request: Request) {
     // ✅ DTO TRANSFORMATION: Convert database types to frontend types
     const transformedItems = (data || []).map(item => ({
       id: item.id,
-      title: item.title,
       service: item.service,
       honor: item.honor,
       description: item.description || undefined, // null → undefined
@@ -60,7 +59,6 @@ export async function POST(request: Request) {
     const {
       id,
       templateId,
-      title,
       service,
       honor,
       description,
@@ -69,9 +67,9 @@ export async function POST(request: Request) {
       displayOrder,
     } = body;
 
-    if (!templateId || !title || !service || !honor) {
+    if (!templateId || !service || !honor) {
       return NextResponse.json(
-        { error: 'templateId, title, service, and honor are required' },
+        { error: 'templateId, service, and honor are required' },
         { status: 400 }
       );
     }
@@ -83,7 +81,6 @@ export async function POST(request: Request) {
       const { data, error } = await supabase
         .from('bid_item_templates')
         .update({
-          title,
           service,
           honor,
           description: description || null,
@@ -103,7 +100,6 @@ export async function POST(request: Request) {
         .from('bid_item_templates')
         .insert({
           template_id: templateId,
-          title,
           service,
           honor,
           description: description || null,

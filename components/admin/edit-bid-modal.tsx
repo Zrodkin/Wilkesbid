@@ -10,9 +10,8 @@ import { toast } from "sonner"
 
 interface AuctionItemData {
   id: string
-  title: string
-  service?: string
-  honor?: string
+  service: string
+  honor: string
   description?: string
   current_bid: number
   starting_bid: number
@@ -38,9 +37,8 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
   const [bidderEmail, setBidderEmail] = useState(item.current_bidder?.email || "")
   
   // Item details editing state
-  const [title, setTitle] = useState(item.title)
-  const [service, setService] = useState(item.service || "")
-  const [honor, setHonor] = useState(item.honor || "")
+  const [service, setService] = useState(item.service)
+  const [honor, setHonor] = useState(item.honor)
   const [description, setDescription] = useState(item.description || "")
   const [startingBid, setStartingBid] = useState(item.starting_bid)
   const [minimumIncrement, setMinimumIncrement] = useState(item.minimum_increment)
@@ -78,9 +76,9 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
     }
   }
 
-  const handleUpdateItemDetails = async () => {
-    if (!title || !service || !honor) {
-      setError("Title, service, and honor are required")
+ const handleUpdateItemDetails = async () => {
+    if (!service || !honor) {
+      setError("Service and honor are required")
       return
     }
 
@@ -93,7 +91,6 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: item.id,
-          title,
           service,
           honor,
           description: description || null,
@@ -103,15 +100,13 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to update item")
+        throw new Error("Failed to update item details")
       }
 
       toast.success("Item details updated successfully")
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update item details")
-      console.error("Update item error:", err)
+      setError("Failed to update item details. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -257,19 +252,7 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
           ) : (
             /* ITEM DETAILS EDITING SECTION */
             <>
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-neutral-300">
-                  Title *
-                </Label>
-                <Input
-                  id="title"
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g., Shacharit Aliyah"
-                  className="bg-neutral-800 border-neutral-700 text-white focus:border-[#C9A961] focus:ring-[#C9A961]/20"
-                />
-              </div>
+              
 
               <div className="space-y-2">
                 <Label htmlFor="service" className="text-neutral-300">

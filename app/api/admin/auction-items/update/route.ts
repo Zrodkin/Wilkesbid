@@ -13,7 +13,6 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const {
       id,
-      title,
       service,
       honor,
       description,
@@ -28,9 +27,9 @@ export async function PUT(request: Request) {
       );
     }
 
-    if (!title || !service || !honor) {
+    if (!service || !honor) {
       return NextResponse.json(
-        { error: 'title, service, and honor are required' },
+        { error: 'service and honor are required' },
         { status: 400 }
       );
     }
@@ -51,7 +50,6 @@ export async function PUT(request: Request) {
       startingBid !== currentItem.starting_bid;
 
     const updateData: Record<string, unknown> = {
-      title,
       service,
       honor,
       description: description || null,

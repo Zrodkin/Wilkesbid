@@ -13,7 +13,6 @@ export const StartAuctionSchema = z.object({
   holidayName: z.string().min(1, 'Holiday name is required'),
   services: z.array(z.string()).min(1, 'At least one service is required'),
   items: z.array(z.object({
-    title: z.string().min(1, 'Title is required'),
     service: z.string().min(1, 'Service is required'),
     honor: z.string().min(1, 'Honor is required'),
     description: z.string().optional(),

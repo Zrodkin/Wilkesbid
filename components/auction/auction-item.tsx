@@ -8,7 +8,6 @@ import { ChevronDown, ChevronUp, CreditCard, CheckCircle } from 'lucide-react';
 
 interface AuctionItemData {
   id: string;
-  title: string;
   description?: string;
   current_bid: number;
   starting_bid: number;
