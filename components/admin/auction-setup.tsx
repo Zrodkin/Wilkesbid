@@ -172,16 +172,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
 
   return (
     <div className="space-y-6">
-      {/* Template Manager Toggle */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => setShowTemplateManager(!showTemplateManager)}
-          className="px-4 py-2 bg-neutral-800 text-white rounded hover:bg-neutral-700 transition-colors"
-        >
-          {showTemplateManager ? 'Hide' : 'Manage'} Templates
-        </button>
-      </div>
-
       {/* Holiday Template Manager */}
       {showTemplateManager && (
         <HolidayTemplateManager
@@ -229,14 +219,10 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                 </button>
               ))}
               <button
-                onClick={() => loadHolidayTemplate('Custom')}
-                className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                  holidayName === '' || !templates.some(t => t.name === holidayName)
-                    ? 'bg-[#C9A961] text-black'
-                    : 'bg-neutral-700 text-white hover:bg-neutral-600'
-                }`}
+                onClick={() => setShowTemplateManager(!showTemplateManager)}
+                className="px-3 py-1.5 rounded text-sm transition-colors bg-[#C9A961] text-black hover:bg-[#B89851]"
               >
-                Custom
+                {showTemplateManager ? 'Hide Manager' : 'Manage Templates'}
               </button>
             </div>
           </div>
