@@ -76,6 +76,13 @@ export function DateTimePicker({
     }
   }
 
+  // Normalize dates to start of day for comparison
+  const normalizeDateForComparison = (date: Date) => {
+    const normalized = new Date(date)
+    normalized.setHours(0, 0, 0, 0)
+    return normalized
+  }
+
   const handleTimeChange = (type: "hour" | "minute", value: string): void => {
     if (!selectedDate) {
       // If no date selected, use today
@@ -121,24 +128,66 @@ export function DateTimePicker({
           {formatDateDisplay(selectedDate)}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-neutral-900 border-neutral-700" align="start">
-        <div className="flex flex-col">
-          {/* Calendar */}
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={handleDateSelect}
-            disabled={(date) => {
-              if (minDate && date < minDate) return true
-              if (maxDate && date > maxDate) return true
-              return false
-            }}
-            initialFocus
-          />
+      <PopoverContent 
+        className="w-auto p-0 bg-neutral-900 border-neutral-700" 
+        align="start"
+        sideOffset={8}
+      >
+        <div className="flex flex-col bg-neutral-900">
+          {/* Calendar with explicit dark theme */}
+          <div className="p-3 bg-neutral-900">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => {
+                // Normalize dates to compare only the date part, not time
+                const normalizedDate = normalizeDateForComparison(date)
+                if (minDate) {
+                  const normalizedMin = normalizeDateForComparison(minDate)
+                  if (normalizedDate < normalizedMin) return true
+                }
+                if (maxDate) {
+                  const normalizedMax = normalizeDateForComparison(maxDate)
+                  if (normalizedDate > normalizedMax) return true
+                }
+                return false
+              }}
+              initialFocus
+              className="bg-neutral-900 text-white"
+              classNames={{
+                months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                month: "space-y-4",
+                caption: "flex justify-center pt-1 relative items-center text-white",
+                caption_label: "text-sm font-medium text-white",
+                nav: "space-x-1 flex items-center",
+                nav_button: cn(
+                  "h-7 w-7 bg-transparent p-0 text-neutral-400 hover:text-white hover:bg-neutral-800"
+                ),
+                nav_button_previous: "absolute left-1",
+                nav_button_next: "absolute right-1",
+                table: "w-full border-collapse space-y-1",
+                head_row: "flex",
+                head_cell: "text-neutral-400 rounded-md w-9 font-normal text-[0.8rem]",
+                row: "flex w-full mt-2",
+                cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-neutral-800/50 [&:has([aria-selected])]:bg-neutral-800 first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                day: cn(
+                  "h-9 w-9 p-0 font-normal text-white aria-selected:opacity-100 hover:bg-neutral-700 hover:text-white rounded-md transition-colors"
+                ),
+                day_range_end: "day-range-end",
+                day_selected: "bg-[#C9A961] text-black hover:bg-[#C9A961] hover:text-black focus:bg-[#C9A961] focus:text-black font-semibold",
+                day_today: "!bg-transparent text-black font-semibold ring-2 ring-[#C9A961] hover:bg-neutral-700 hover:text-white !shadow-none",
+                day_outside: "day-outside text-neutral-600 opacity-50 aria-selected:bg-neutral-800/50 aria-selected:text-neutral-500 aria-selected:opacity-30",
+                day_disabled: "text-neutral-600 opacity-50",
+                day_range_middle: "aria-selected:bg-neutral-800 aria-selected:text-white",
+                day_hidden: "invisible",
+              }}
+            />
+          </div>
           
           {/* Time Picker */}
           <div className="border-t border-neutral-700 p-3 bg-neutral-800/50">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <div className="flex-1">
                 <label className="text-xs text-neutral-400 mb-1 block">Hour</label>
                 <Select
