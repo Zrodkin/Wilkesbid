@@ -379,9 +379,13 @@ export function AdminDashboard() {
       </div>
 
       {/* Modals */}
-      {activeModal === 'edit' && selectedItem && (
-        <EditBidModal item={selectedItem} onClose={closeModal} />
-      )}
+     {activeModal === 'edit' && selectedItem && (
+  <EditBidModal 
+    item={selectedItem} 
+    onClose={closeModal} 
+    services={auction?.services || []}
+  />
+)}
       {activeModal === 'move' && selectedItem && (
         <MoveBidModal item={selectedItem} onClose={closeModal} allItems={items} />
       )}

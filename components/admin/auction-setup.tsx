@@ -1,10 +1,12 @@
+// COMPLETE auction-setup.tsx with edit functionality
 // components/admin/auction-setup.tsx
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Plus, X, Loader2, Check } from 'lucide-react';
+import { Plus, X, Loader2, Check, Edit } from 'lucide-react';
 import { AddTemplateModal } from './add-template-modal';
+import { EditTemplateItemModal } from './edit-template-item-modal';
 
 interface AuctionItem {
   id?: string;
@@ -39,6 +41,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<HolidayTemplate | null>(null);
   const [showAddTemplateModal, setShowAddTemplateModal] = useState(false);
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle');
+  const [editingItem, setEditingItem] = useState<AuctionItem | null>(null);
 
   // Item form state
   const [itemTitle, setItemTitle] = useState('');
@@ -268,6 +271,14 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
     toast.success('Item removed');
   };
 
+  const handleItemUpdated = (updatedItem: AuctionItem) => {
+    const updatedItems = items.map(item => 
+      item.id === updatedItem.id ? updatedItem : item
+    );
+    setItems(updatedItems);
+    localStorage.setItem('auction_setup_items', JSON.stringify(updatedItems));
+  };
+
   const startAuction = async () => {
     if (!selectedTemplate) {
       toast.error('Please select a template');
@@ -344,6 +355,15 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
           onTemplateCreated={() => {
             loadTemplates();
           }}
+        />
+      )}
+
+      {editingItem && (
+        <EditTemplateItemModal
+          item={editingItem}
+          services={services}
+          onClose={() => setEditingItem(null)}
+          onItemUpdated={handleItemUpdated}
         />
       )}
 
@@ -435,31 +455,30 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                   value={newService}
                   onChange={(e) => setNewService(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addService()}
-                  placeholder="Add new service"
+                  placeholder="Add a service..."
                   className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
                 />
                 <button
                   onClick={addService}
-                  className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-[#C9A961] text-black rounded hover:bg-[#B89851] transition-colors"
                 >
-                  <Plus className="h-4 w-4" />
                   Add
                 </button>
               </div>
             </div>
 
-            {/* Add Item Section */}
+            {/* Add Item Form */}
             <div className="mb-6 p-4 border border-neutral-700 rounded-lg bg-neutral-800/50">
-              <h3 className="font-semibold mb-4 text-white">Add Auction Item</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="font-semibold mb-4 text-white">Add New Item</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium mb-2 text-neutral-400">Title</label>
                   <input
                     type="text"
                     value={itemTitle}
                     onChange={(e) => setItemTitle(e.target.value)}
-                    placeholder="e.g., Opening the Ark"
+                    placeholder="e.g., Shacharit Aliyah"
                     className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
                   />
                 </div>
@@ -471,7 +490,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                     onChange={(e) => setItemService(e.target.value)}
                     className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
                   >
-                    <option value="">Select service</option>
+                    <option value="">Select service...</option>
                     {services.map((service) => (
                       <option key={service} value={service}>
                         {service}
@@ -556,12 +575,22 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                           <div className="text-xs text-neutral-500 mt-1">{item.description}</div>
                         )}
                       </div>
-                      <button
-                        onClick={() => removeItem(index)}
-                        className="ml-4 text-red-500 hover:text-red-400 transition-colors"
-                      >
-                        <X className="h-5 w-5" />
-                      </button>
+                      <div className="flex gap-2 ml-4">
+                        <button
+                          onClick={() => setEditingItem(item)}
+                          className="text-[#C9A961] hover:text-[#B89851] transition-colors"
+                          title="Edit item"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => removeItem(index)}
+                          className="text-red-500 hover:text-red-400 transition-colors"
+                          title="Remove item"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
