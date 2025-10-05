@@ -1,3 +1,4 @@
+// COMPLETE auction-setup.tsx with edit functionality
 // components/admin/auction-setup.tsx
 'use client';
 
@@ -6,7 +7,6 @@ import { toast } from 'sonner';
 import { Plus, X, Loader2, Check, Edit } from 'lucide-react';
 import { AddTemplateModal } from './add-template-modal';
 import { EditTemplateItemModal } from './edit-template-item-modal';
-import { DateTimePicker } from '@/components/ui/date-time-picker';
 
 interface AuctionItem {
   id?: string;
@@ -31,10 +31,8 @@ interface HolidayTemplate {
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
-  // UPDATED: Using Date objects instead of strings
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  
+  const [endDate, setEndDate] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [services, setServices] = useState<string[]>([]);
   const [newService, setNewService] = useState('');
   const [items, setItems] = useState<AuctionItem[]>([]);
@@ -237,7 +235,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
       
       // Reset form
       setItemTitle('');
-      setItemService('');
       setItemHonor('');
       setItemDescription('');
       setItemStartingBid(18);
@@ -274,10 +271,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
     toast.success('Item removed');
   };
 
-  const editItem = (item: AuctionItem) => {
-    setEditingItem(item);
-  };
-
   const handleItemUpdated = (updatedItem: AuctionItem) => {
     const updatedItems = items.map(item => 
       item.id === updatedItem.id ? updatedItem : item
@@ -287,79 +280,74 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
   };
 
   const startAuction = async () => {
-    if (!selectedTemplate) {
-      toast.error('Please select a template');
-      return;
+  if (!selectedTemplate) {
+    toast.error('Please select a template');
+    return;
+  }
+
+  if (items.length === 0) {
+    toast.error('Please add at least one auction item');
+    return;
+  }
+
+  if (!endDate || !endTime) {
+    toast.error('Please set an end date and time');
+    return;
+  }
+
+  if (services.length === 0) {
+    toast.error('Please add at least one service');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const endDateTime = new Date(`${endDate}T${endTime}`).toISOString();
+
+    const response = await fetch('/api/admin/auction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endDate: endDateTime,
+        holidayName: selectedTemplate.name,
+        services,
+        items: items.map((item, index) => ({
+          title: item.title,
+          service: item.service,
+          honor: item.honor,
+          // ✅ DEFENSIVE: Normalize null/undefined to null explicitly
+          description: item.description || null,
+          // ✅ DEFENSIVE: Ensure numbers are actual numbers (not strings)
+          startingBid: Number(item.startingBid),
+          minimumIncrement: Number(item.minimumIncrement),
+          displayOrder: index,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to start auction');
     }
 
-    if (items.length === 0) {
-      toast.error('Please add at least one auction item');
-      return;
+    toast.success('Auction started successfully!');
+    
+    // Clear localStorage
+    localStorage.removeItem('auction_setup_items');
+    localStorage.removeItem('selected_template_id');
+    
+    onSuccess();
+  } catch (error: unknown) {
+    let message = 'Failed to start auction';
+    if (error instanceof Error) {
+      message = error.message;
     }
-
-    // UPDATED: Check for both start and end dates
-    if (!startDate || !endDate) {
-      toast.error('Please set both start and end date/time');
-      return;
-    }
-
-    // UPDATED: Validate that start is before end
-    if (startDate >= endDate) {
-      toast.error('Start date/time must be before end date/time');
-      return;
-    }
-
-    if (services.length === 0) {
-      toast.error('Please add at least one service');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // UPDATED: Send both startDate and endDate
-      const response = await fetch('/api/admin/auction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          holidayName: selectedTemplate.name,
-          services,
-          items: items.map((item, index) => ({
-            title: item.title,
-            service: item.service,
-            honor: item.honor,
-            description: item.description || null,
-            startingBid: Number(item.startingBid),
-            minimumIncrement: Number(item.minimumIncrement),
-            displayOrder: index,
-          })),
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to start auction');
-      }
-
-      toast.success('Auction started successfully!');
-      
-      // Clear localStorage
-      localStorage.removeItem('auction_setup_items');
-      localStorage.removeItem('selected_template_id');
-      
-      onSuccess();
-    } catch (error: unknown) {
-      let message = 'Failed to start auction';
-      if (error instanceof Error) {
-        message = error.message;
-      }
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    toast.error(message);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="space-y-6">
@@ -562,34 +550,37 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
 
               <button
                 onClick={addItem}
-                className="w-full px-4 py-2 bg-[#C9A961] text-black rounded hover:bg-[#B89851] transition-colors font-semibold"
+                className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
+                <Plus className="h-4 w-4" />
                 Add Item
               </button>
             </div>
 
             {/* Items List */}
             {items.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold mb-3 text-white">
-                  Auction Items ({items.length})
-                </h3>
+              <div className="mb-6 p-4 border border-neutral-700 rounded-lg bg-neutral-800/50">
+                <h3 className="font-semibold mb-4 text-white">Auction Items ({items.length})</h3>
+                
                 <div className="space-y-2">
                   {items.map((item, index) => (
                     <div
                       key={index}
-                      className="flex items-center justify-between p-3 bg-neutral-800 rounded border border-neutral-700"
+                      className="flex items-start justify-between bg-neutral-800 p-3 rounded border border-neutral-700"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-white">{item.title}</p>
-                        <p className="text-sm text-neutral-400">
-                          {item.service} - {item.honor} - Starting: ${item.startingBid}
-                        </p>
+                        <div className="font-medium text-white">{item.title}</div>
+                        <div className="text-sm text-neutral-400">
+                          {item.service} • {item.honor} • ${item.startingBid}
+                        </div>
+                        {item.description && (
+                          <div className="text-xs text-neutral-500 mt-1">{item.description}</div>
+                        )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 ml-4">
                         <button
-                          onClick={() => editItem(item)}
-                          className="text-blue-500 hover:text-blue-400 transition-colors"
+                          onClick={() => setEditingItem(item)}
+                          className="text-[#C9A961] hover:text-[#B89851] transition-colors"
                           title="Edit item"
                         >
                           <Edit className="h-4 w-4" />
@@ -608,29 +599,24 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
               </div>
             )}
 
-            {/* UPDATED: Start & End Date/Time Pickers */}
-            <div className="mb-6 space-y-4">
+            {/* End Date/Time */}
+            <div className="mb-6 grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-400">
-                  Start Date & Time
-                </label>
-                <DateTimePicker
-                  value={startDate}
-                  onChange={setStartDate}
-                  placeholder="Select auction start date & time"
-                  minDate={new Date()}
+                <label className="block text-sm font-medium mb-2 text-neutral-400">End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium mb-2 text-neutral-400">
-                  End Date & Time
-                </label>
-                <DateTimePicker
-                  value={endDate}
-                  onChange={setEndDate}
-                  placeholder="Select auction end date & time"
-                  minDate={startDate || new Date()}
+                <label className="block text-sm font-medium mb-2 text-neutral-400">End Time</label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
                 />
               </div>
             </div>
