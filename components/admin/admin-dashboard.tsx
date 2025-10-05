@@ -1,11 +1,16 @@
+// components/admin/admin-dashboard.tsx (Enhanced Version)
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { AuctionSetup } from './auction-setup';
+import { EditBidModal } from './edit-bid-modal';
+import { MoveBidModal } from './move-bid-modal';
+import { BidHistoryModal } from './bid-history-modal';
+import { CreateItemModal } from './create-item-modal';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { Search, LogOut, ExternalLink } from 'lucide-react';
+import { Search, LogOut, ExternalLink, Edit, ArrowRightLeft, History, Plus } from 'lucide-react';
 
 interface Auction {
   id: number;
@@ -23,13 +28,21 @@ interface AuctionItemData {
   minimum_increment: number;
   display_order: number;
   current_bidder_id?: string;
+  current_bidder?: {
+    full_name: string;
+    email: string;
+  };
 }
+
+type ModalType = 'edit' | 'move' | 'history' | 'create' | null;
 
 export function AdminDashboard() {
   const [auction, setAuction] = useState<Auction | null>(null);
   const [items, setItems] = useState<AuctionItemData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [selectedItem, setSelectedItem] = useState<AuctionItemData | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -45,7 +58,10 @@ export function AdminDashboard() {
     if (auctionData) {
       const { data: itemsData } = await supabase
         .from('auction_items')
-        .select('*')
+        .select(`
+          *,
+          current_bidder:bidders(full_name, email)
+        `)
         .eq('auction_id', auctionData.id)
         .order('display_order');
       
@@ -74,18 +90,8 @@ export function AdminDashboard() {
             schema: 'public',
             table: 'auction_items',
           },
-          (payload) => {
-            if (payload.eventType === 'UPDATE') {
-              setItems((current) =>
-                current.map((item) => 
-                  item.id === payload.new.id ? (payload.new as AuctionItemData) : item
-                )
-              );
-            } else if (payload.eventType === 'INSERT') {
-              setItems((current) => [...current, payload.new as AuctionItemData]);
-            } else if (payload.eventType === 'DELETE') {
-              setItems((current) => current.filter((item) => item.id !== payload.old.id));
-            }
+          () => {
+            loadAuctionStatus();
           }
         )
         .subscribe();
@@ -98,7 +104,7 @@ export function AdminDashboard() {
         supabase.removeChannel(channel);
       }
     };
-  }, [supabase, auction]);
+  }, [supabase, auction, loadAuctionStatus]);
 
   const handleLogout = async () => {
     await fetch('/api/admin/auth', { method: 'DELETE' });
@@ -121,6 +127,17 @@ export function AdminDashboard() {
       console.error('Failed to end auction:', error);
       alert('Failed to end auction. Please try again.');
     }
+  };
+
+  const openModal = (type: ModalType, item?: AuctionItemData) => {
+    setActiveModal(type);
+    setSelectedItem(item || null);
+  };
+
+  const closeModal = () => {
+    setActiveModal(null);
+    setSelectedItem(null);
+    loadAuctionStatus();
   };
 
   const filteredItems = items.filter(
@@ -149,8 +166,8 @@ export function AdminDashboard() {
           <p className="text-neutral-400 mt-1">Manage auction bids in real-time</p>
         </div>
 
-        {/* Buttons below header */}
-        <div className="flex gap-2 mb-8">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-2 mb-8">
           <a href="/" target="_blank" rel="noopener noreferrer">
             <button className="px-4 py-2 border border-neutral-700 text-neutral-400 bg-transparent rounded-md hover:bg-neutral-900 transition-colors flex items-center gap-2">
               <ExternalLink className="h-4 w-4" />
@@ -164,6 +181,15 @@ export function AdminDashboard() {
             <LogOut className="h-4 w-4" />
             Logout
           </button>
+          {auction && (
+            <button 
+              onClick={() => openModal('create')}
+              className="px-4 py-2 bg-[#C9A961] text-black rounded-md hover:bg-[#B89851] transition-colors flex items-center gap-2 font-medium ml-auto"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Item
+            </button>
+          )}
         </div>
 
         {!auction ? (
@@ -230,28 +256,20 @@ export function AdminDashboard() {
                   <p className="text-neutral-300 mb-3">
                     Auction has ended. Winners have been notified by email.
                   </p>
-                  <a
-                    href="/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
-                  >
-                    View Results
-                  </a>
                 </div>
               )}
             </div>
 
-            {/* Search */}
+            {/* Search Bar */}
             <div className="mb-6">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
                 <input
                   type="text"
                   placeholder="Search items..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-neutral-900 border border-neutral-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50 text-white placeholder:text-neutral-500"
+                  className="w-full pl-12 pr-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/20"
                 />
               </div>
             </div>
@@ -260,31 +278,57 @@ export function AdminDashboard() {
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-neutral-800">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Item</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Description</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Current Bid</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-neutral-400">Starting Bid</th>
+                  <thead>
+                    <tr className="border-b border-neutral-800 bg-neutral-800/50">
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Item</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Current Bid</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Bidder</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-neutral-400">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-800">
+                  <tbody>
                     {filteredItems.map((item, index) => (
-                      <tr 
-                        key={item.id} 
+                      <tr
+                        key={item.id}
                         className={index % 2 === 0 ? 'bg-neutral-900' : 'bg-neutral-800/50'}
                       >
-                        <td className="px-4 py-3 text-sm text-white font-medium">
-                          {item.title}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-300">
-                          {item.description || '-'}
+                        <td className="px-4 py-3">
+                          <div className="text-sm text-white font-medium">{item.title}</div>
+                          {item.description && (
+                            <div className="text-xs text-neutral-400 mt-1">{item.description}</div>
+                          )}
                         </td>
                         <td className="px-4 py-3 text-sm text-[#C9A961] font-semibold">
                           ${item.current_bid.toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm text-neutral-400">
-                          ${item.starting_bid.toLocaleString()}
+                        <td className="px-4 py-3 text-sm text-neutral-300">
+                          {item.current_bidder?.full_name || '-'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openModal('edit', item)}
+                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
+                              title="Edit Bid"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openModal('move', item)}
+                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
+                              title="Move Bid"
+                              disabled={!item.current_bidder}
+                            >
+                              <ArrowRightLeft className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => openModal('history', item)}
+                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
+                              title="Bid History"
+                            >
+                              <History className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -295,6 +339,20 @@ export function AdminDashboard() {
           </>
         )}
       </div>
+
+      {/* Modals */}
+      {activeModal === 'edit' && selectedItem && (
+        <EditBidModal item={selectedItem} onClose={closeModal} />
+      )}
+      {activeModal === 'move' && selectedItem && (
+        <MoveBidModal item={selectedItem} onClose={closeModal} allItems={items} />
+      )}
+      {activeModal === 'history' && selectedItem && (
+        <BidHistoryModal item={selectedItem} onClose={closeModal} />
+      )}
+      {activeModal === 'create' && (
+        <CreateItemModal onClose={closeModal} onItemCreated={closeModal} />
+      )}
     </div>
   );
 }
