@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
 import { z } from 'zod';
 
+// ✅ IMPROVED SCHEMA: Handles real-world database inconsistencies
 const StartAuctionSchema = z.object({
   endDate: z.string().datetime(),
   holidayName: z.string().min(1, 'Holiday name is required'),
@@ -12,9 +13,11 @@ const StartAuctionSchema = z.object({
     title: z.string().min(1, 'Title is required'),
     service: z.string().min(1, 'Service is required'),
     honor: z.string().min(1, 'Honor is required'),
-    description: z.string().optional(),
-    startingBid: z.number().min(0),
-    minimumIncrement: z.number().min(1).default(1),
+    // ✅ ACCEPT both null and undefined, normalize to null
+    description: z.string().nullish().transform(val => val ?? null),
+    // ✅ COERCE strings to numbers (handles "18.00" → 18)
+    startingBid: z.coerce.number().min(0),
+    minimumIncrement: z.coerce.number().min(1).default(1),
     displayOrder: z.number(),
   })).min(1, 'At least one item is required')
 });
@@ -57,8 +60,8 @@ export async function POST(request: Request) {
       title: item.title,
       service: item.service,
       honor: item.honor,
-      description: item.description || null,
-      starting_bid: item.startingBid,
+      description: item.description, // Already normalized to null by schema
+      starting_bid: item.startingBid, // Already coerced to number by schema
       current_bid: item.startingBid,
       minimum_increment: item.minimumIncrement,
       display_order: item.displayOrder,
@@ -80,7 +83,7 @@ export async function POST(request: Request) {
     
     if (typeof error === 'object' && error !== null && 'name' in error && error.name === 'ZodError') {
       return NextResponse.json(
-        { error: 'Invalid input data' }, 
+        { error: 'Invalid input data', details: error }, 
         { status: 400 }
       );
     }

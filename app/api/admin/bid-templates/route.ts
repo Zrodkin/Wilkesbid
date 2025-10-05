@@ -26,7 +26,19 @@ export async function GET(request: Request) {
     
     if (error) throw error;
     
-    return NextResponse.json({ items: data || [] });
+    // ✅ DTO TRANSFORMATION: Convert database types to frontend types
+    const transformedItems = (data || []).map(item => ({
+      id: item.id,
+      title: item.title,
+      service: item.service,
+      honor: item.honor,
+      description: item.description || undefined, // null → undefined
+      startingBid: Number(item.starting_bid), // string → number
+      minimumIncrement: Number(item.minimum_increment), // string → number
+      displayOrder: item.display_order,
+    }));
+    
+    return NextResponse.json({ items: transformedItems });
   } catch (error) {
     console.error('Get bid templates error:', error);
     return NextResponse.json(

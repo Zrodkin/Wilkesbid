@@ -280,72 +280,74 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
   };
 
   const startAuction = async () => {
-    if (!selectedTemplate) {
-      toast.error('Please select a template');
-      return;
+  if (!selectedTemplate) {
+    toast.error('Please select a template');
+    return;
+  }
+
+  if (items.length === 0) {
+    toast.error('Please add at least one auction item');
+    return;
+  }
+
+  if (!endDate || !endTime) {
+    toast.error('Please set an end date and time');
+    return;
+  }
+
+  if (services.length === 0) {
+    toast.error('Please add at least one service');
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const endDateTime = new Date(`${endDate}T${endTime}`).toISOString();
+
+    const response = await fetch('/api/admin/auction', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endDate: endDateTime,
+        holidayName: selectedTemplate.name,
+        services,
+        items: items.map((item, index) => ({
+          title: item.title,
+          service: item.service,
+          honor: item.honor,
+          // ✅ DEFENSIVE: Normalize null/undefined to null explicitly
+          description: item.description || null,
+          // ✅ DEFENSIVE: Ensure numbers are actual numbers (not strings)
+          startingBid: Number(item.startingBid),
+          minimumIncrement: Number(item.minimumIncrement),
+          displayOrder: index,
+        })),
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to start auction');
     }
 
-    if (items.length === 0) {
-      toast.error('Please add at least one auction item');
-      return;
+    toast.success('Auction started successfully!');
+    
+    // Clear localStorage
+    localStorage.removeItem('auction_setup_items');
+    localStorage.removeItem('selected_template_id');
+    
+    onSuccess();
+  } catch (error: unknown) {
+    let message = 'Failed to start auction';
+    if (error instanceof Error) {
+      message = error.message;
     }
-
-    if (!endDate || !endTime) {
-      toast.error('Please set an end date and time');
-      return;
-    }
-
-    if (services.length === 0) {
-      toast.error('Please add at least one service');
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      const endDateTime = new Date(`${endDate}T${endTime}`).toISOString();
-
-      const response = await fetch('/api/admin/auction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endDate: endDateTime,
-          holidayName: selectedTemplate.name,
-          services,
-          items: items.map((item, index) => ({
-            title: item.title,
-            service: item.service,
-            honor: item.honor,
-            description: item.description,
-            startingBid: item.startingBid,
-            minimumIncrement: item.minimumIncrement,
-            displayOrder: index,
-          })),
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to start auction');
-      }
-
-      toast.success('Auction started successfully!');
-      
-      // Clear localStorage
-      localStorage.removeItem('auction_setup_items');
-      localStorage.removeItem('selected_template_id');
-      
-      onSuccess();
-    } catch (error: unknown) {
-      let message = 'Failed to start auction';
-      if (error instanceof Error) {
-        message = error.message;
-      }
-      toast.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    toast.error(message);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="space-y-6">
