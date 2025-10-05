@@ -12,7 +12,6 @@ interface OutbidNotification {
   newBidderName: string;
 }
 
-// 👇 FIX 1: Defined a specific type for the winner's invoice data.
 interface WinnerInvoiceData {
   name: string;
   items: { title: string; amount: number }[];
@@ -100,13 +99,22 @@ export async function sendWinnerNotifications(auctionId?: string) {
     
     const { data: winners } = await query;
     
-    if (!winners || winners.length === 0) return;
+    if (!winners || winners.length === 0) {
+      console.log('No winners found to notify');
+      return;
+    }
+
+    console.log(`Found ${winners.length} items with winners for auction ${auctionId || 'all'}`);
     
     // Group by email to send combined invoices
     const winnersByEmail = winners.reduce((acc, item) => {
-      const bidder = item.current_bidder[0]; 
+      // Handle both array and object formats from Supabase
+      const bidder = Array.isArray(item.current_bidder) 
+        ? item.current_bidder[0] 
+        : item.current_bidder;
 
       if (!bidder) {
+        console.log('Warning: Item has no bidder data:', item);
         return acc;
       }
       
@@ -115,7 +123,8 @@ export async function sendWinnerNotifications(auctionId?: string) {
         acc[email] = {
           name: bidder.full_name,
           items: [],
-          total: 0
+          total: 0,
+          auctionId: item.auction_id // Store auction_id for logging
         };
       }
       acc[email].items.push({
@@ -124,26 +133,45 @@ export async function sendWinnerNotifications(auctionId?: string) {
       });
       acc[email].total += Number(item.current_bid);
       return acc;
-    }, {} as Record<string, WinnerInvoiceData>); 
+    }, {} as Record<string, WinnerInvoiceData & { auctionId: string }>); 
+    
+    console.log('Winners by email:', JSON.stringify(winnersByEmail, null, 2));
+    console.log('Number of unique winner emails:', Object.keys(winnersByEmail).length);
     
     // Send emails
     for (const [email, data] of Object.entries(winnersByEmail)) {
-      // Check if already sent
-      const { data: existing } = await supabase
+      console.log(`Processing winner email for: ${email}`);
+      
+      // Check if already sent FOR THIS SPECIFIC AUCTION
+      const { data: existing, error: checkError } = await supabase
         .from('email_log')
         .select('id')
         .eq('recipient_email', email)
         .eq('email_type', 'winner')
-        .single();
+        .eq('auction_id', data.auctionId)
+        .maybeSingle();
       
-      if (existing) continue;
+      if (checkError) {
+        console.error(`Error checking email log for ${email}:`, checkError);
+      }
+      
+      if (existing) {
+        console.log(`Winner email already sent to ${email} for auction ${data.auctionId}`);
+        continue;
+      }
+      
+      console.log(`Preparing to send winner email to ${email}...`);
+      
+      console.log(`Preparing to send winner email to ${email}...`);
       
       try {
         const itemsList = data.items.map((item) => 
-          `<li>${item.title}: <strong>$${item.amount.toFixed(2)}</strong></li>`
+          `<li>${item.title}: <strong>${item.amount.toFixed(2)}</strong></li>`
         ).join('');
         
-        await resend.emails.send({
+        console.log(`Sending email via Resend to ${email}...`);
+        
+        const result = await resend.emails.send({
           from: process.env.EMAIL_FROM!,
           to: email,
           subject: 'Congratulations! You won auction items',
@@ -162,13 +190,26 @@ export async function sendWinnerNotifications(auctionId?: string) {
           `
         });
         
+        console.log(`Resend API response:`, result);
+        console.log(`Winner email sent successfully to ${email}`);
+        
+        // Log the sent email with auction_id
         await supabase.from('email_log').insert({
           recipient_email: email,
           email_type: 'winner',
+          auction_id: data.auctionId,
           status: 'sent'
         });
       } catch (error) {
         console.error(`Failed to send winner email to ${email}:`, error);
+        
+        // Log the failure
+        await supabase.from('email_log').insert({
+          recipient_email: email,
+          email_type: 'winner',
+          auction_id: data.auctionId,
+          status: 'failed'
+        });
       }
     }
   } catch (error) {
