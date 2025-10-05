@@ -10,7 +10,7 @@ import { MoveBidModal } from './move-bid-modal';
 import { BidHistoryModal } from './bid-history-modal';
 import { CreateItemModal } from './create-item-modal';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { Search, LogOut, ExternalLink, Edit, ArrowRightLeft, History, Plus } from 'lucide-react';
+import { Search, LogOut, Edit, ArrowRightLeft, History, Plus, RefreshCw } from 'lucide-react';
 
 interface Auction {
   id: number;
@@ -47,6 +47,7 @@ export function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [selectedItem, setSelectedItem] = useState<AuctionItemData | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -133,6 +134,10 @@ export function AdminDashboard() {
     }
   };
 
+  const handleStartNewAuction = () => {
+    setShowSetup(true);
+  };
+
   const openModal = (type: ModalType, item?: AuctionItemData) => {
     setActiveModal(type);
     setSelectedItem(item || null);
@@ -178,9 +183,16 @@ export function AdminDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto">
-        {!auction && <AuctionSetup onSuccess={loadAuctionStatus} />}
+        {(!auction || showSetup) && (
+          <AuctionSetup 
+            onSuccess={() => {
+              setShowSetup(false);
+              loadAuctionStatus();
+            }} 
+          />
+        )}
 
-        {auction && (
+        {auction && !showSetup && (
           <>
             {/* Auction Info */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
@@ -251,6 +263,13 @@ export function AdminDashboard() {
                   <p className="text-neutral-300 mb-3">
                     Auction has ended. Winners have been notified by email.
                   </p>
+                  <button
+                    onClick={handleStartNewAuction}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Start New Auction
+                  </button>
                 </div>
               )}
             </div>
