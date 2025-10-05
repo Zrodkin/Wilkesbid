@@ -10,7 +10,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, startingBid, minimumIncrement } = await request.json();
+    const { title, service, honor, description, startingBid, minimumIncrement } = await request.json();
     const supabase = await createClient();
 
     // Get the current active auction
@@ -41,6 +41,8 @@ export async function POST(request: Request) {
       .insert({
         auction_id: auction.id,
         title,
+        service: service || null,
+        honor: honor || null,
         description: description || null,
         starting_bid: startingBid,
         current_bid: startingBid,

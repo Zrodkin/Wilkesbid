@@ -1,4 +1,4 @@
-// components/admin/admin-dashboard.tsx (Enhanced Version)
+// components/admin/admin-dashboard.tsx
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -17,11 +17,15 @@ interface Auction {
   created_at: string;
   end_time: string;
   status: 'active' | 'ended';
+  holiday_name?: string;
+  services?: string[];
 }
 
 interface AuctionItemData {
   id: string;
   title: string;
+  service?: string;
+  honor?: string;
   description?: string;
   current_bid: number;
   starting_bid: number;
@@ -143,94 +147,85 @@ export function AdminDashboard() {
   const filteredItems = items.filter(
     (item) =>
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      item.service?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.honor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.current_bidder?.full_name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const totalBids = items.reduce((sum, item) => sum + item.current_bid, 0);
-  const itemsWithBids = items.filter((item) => item.current_bidder_id).length;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-neutral-400">Loading...</div>
+      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
+    <div className="min-h-screen bg-neutral-950 text-white p-6">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[#C9A961]">Admin Dashboard</h1>
-          <p className="text-neutral-400 mt-1">Manage auction bids in real-time</p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-wrap gap-2 mb-8">
-          <a href="/" target="_blank" rel="noopener noreferrer">
-            <button className="px-4 py-2 border border-neutral-700 text-neutral-400 bg-transparent rounded-md hover:bg-neutral-900 transition-colors flex items-center gap-2">
-              <ExternalLink className="h-4 w-4" />
-              View Site
-            </button>
-          </a>
-          <button 
+          <button
             onClick={handleLogout}
-            className="px-4 py-2 border border-neutral-700 text-neutral-400 bg-transparent rounded-md hover:bg-neutral-900 transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Logout
           </button>
-          {auction && (
-            <button 
-              onClick={() => openModal('create')}
-              className="px-4 py-2 bg-[#C9A961] text-black rounded-md hover:bg-[#B89851] transition-colors flex items-center gap-2 font-medium ml-auto"
-            >
-              <Plus className="h-4 w-4" />
-              Create New Item
-            </button>
-          )}
         </div>
+      </div>
 
-        {!auction ? (
-          <AuctionSetup onSuccess={loadAuctionStatus} />
-        ) : (
+      <div className="max-w-7xl mx-auto">
+        {!auction && <AuctionSetup onSuccess={loadAuctionStatus} />}
+
+        {auction && (
           <>
-            {/* Stats */}
-            <div className="grid md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-                <div className="text-neutral-400 text-sm">Status</div>
-                <div className="text-3xl font-bold text-white mt-1 uppercase">{auction.status}</div>
-              </div>
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-                <div className="text-neutral-400 text-sm">Total Items</div>
-                <div className="text-3xl font-bold text-white mt-1">{items.length}</div>
-              </div>
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-                <div className="text-neutral-400 text-sm">Items with Bids</div>
-                <div className="text-3xl font-bold text-white mt-1">{itemsWithBids}</div>
-              </div>
-              <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-                <div className="text-neutral-400 text-sm">Total Bid Amount</div>
-                <div className="text-3xl font-bold text-[#C9A961] mt-1">${totalBids.toLocaleString()}</div>
-              </div>
-            </div>
-
             {/* Auction Info */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4 text-[#C9A961]">
-                Auction Information
-              </h2>
-              <p className="text-neutral-400 mb-2">
-                End Time: <span className="font-medium text-white">
-                  {new Date(auction.end_time).toLocaleString()}
-                </span>
-              </p>
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-xl font-bold text-white mb-2">
+                    {auction.holiday_name || 'Yom Kippur'} Auction
+                  </h2>
+                  <p className="text-neutral-400">
+                    Status: <span className={auction.status === 'active' ? 'text-green-500' : 'text-orange-500'}>
+                      {auction.status === 'active' ? 'Active' : 'Ended'}
+                    </span>
+                  </p>
+                  <p className="text-neutral-400">
+                    Ends: {new Date(auction.end_time).toLocaleString()}
+                  </p>
+                  {auction.services && auction.services.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-neutral-400 text-sm mb-1">Services:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {auction.services.map((service) => (
+                          <span
+                            key={service}
+                            className="text-xs bg-[#C9A961] text-black px-2 py-1 rounded"
+                          >
+                            {service}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => openModal('create')}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Item
+                </button>
+              </div>
 
               {auction.status === 'active' && (
-                <div className="mt-4 p-4 bg-[#C9A961]/10 rounded-lg border border-[#C9A961]/30">
+                <div className="mt-4 p-4 bg-neutral-800 rounded-lg border border-neutral-700">
                   <p className="text-neutral-300 mb-3">
-                    Auction is currently active. Monitor bids in real-time on the main page.
+                    Monitor bids in real-time on the main page.
                   </p>
                   <div className="flex gap-4">
                     <a
@@ -281,6 +276,7 @@ export function AdminDashboard() {
                   <thead>
                     <tr className="border-b border-neutral-800 bg-neutral-800/50">
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Item</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Service</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Current Bid</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Bidder</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-neutral-400">Actions</th>
@@ -294,8 +290,18 @@ export function AdminDashboard() {
                       >
                         <td className="px-4 py-3">
                           <div className="text-sm text-white font-medium">{item.title}</div>
+                          {item.honor && (
+                            <div className="text-xs text-neutral-500 mt-1">{item.honor}</div>
+                          )}
                           {item.description && (
                             <div className="text-xs text-neutral-400 mt-1">{item.description}</div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {item.service && (
+                            <span className="text-xs bg-[#C9A961] text-black px-2 py-1 rounded">
+                              {item.service}
+                            </span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm text-[#C9A961] font-semibold">
@@ -350,8 +356,12 @@ export function AdminDashboard() {
       {activeModal === 'history' && selectedItem && (
         <BidHistoryModal item={selectedItem} onClose={closeModal} />
       )}
-      {activeModal === 'create' && (
-        <CreateItemModal onClose={closeModal} onItemCreated={closeModal} />
+      {activeModal === 'create' && auction && (
+        <CreateItemModal 
+          onClose={closeModal} 
+          onItemCreated={closeModal}
+          services={auction.services || []}
+        />
       )}
     </div>
   );
