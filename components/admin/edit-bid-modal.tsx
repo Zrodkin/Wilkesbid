@@ -177,13 +177,13 @@ export function EditBidModal({ item, onClose, services = [] }: EditBidModalProps
           {!showItemDetails ? (
             /* BID EDITING SECTION */
             <>
-              <div>
-                <div className="text-sm text-neutral-400">Item</div>
-                <div className="text-white font-medium">{item.title}</div>
-                {item.description && (
-                  <div className="text-sm text-neutral-500">{item.description}</div>
-                )}
-              </div>
+           <div>
+  <div className="text-sm text-neutral-400">Item</div>
+  <div className="text-white font-medium">{item.service} - {item.honor}</div>
+  {item.description && (
+    <div className="text-sm text-neutral-500">{item.description}</div>
+  )}
+</div>
 
               <div className="space-y-2">
                 <Label htmlFor="bidAmount" className="text-neutral-300">

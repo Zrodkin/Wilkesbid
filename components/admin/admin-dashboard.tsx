@@ -243,7 +243,6 @@ export function AdminDashboard() {
   const q = searchQuery.trim().toLowerCase();
   const filteredItems = items.filter((item) => {
     return (
-      (item.title || '').toLowerCase().includes(q) ||
       (item.service || '').toLowerCase().includes(q) ||
       (item.honor || '').toLowerCase().includes(q) ||
       (item.description || '').toLowerCase().includes(q) ||
@@ -521,7 +520,7 @@ export function AdminDashboard() {
                 <div key={item.id} className="bg-neutral-900 border border-neutral-800 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
-                      <div className="text-base font-semibold text-white mb-2">{item.title}</div>
+                      <div className="text-base font-semibold text-white mb-2">{item.service} - {item.honor}</div>
                       <div className="flex flex-wrap gap-2 mb-2">
                         {item.service && <span className="text-xs bg-[#C9A961] text-black px-2 py-0.5 rounded">{item.service}</span>}
                         {item.honor && <span className="text-xs bg-neutral-700 text-neutral-300 px-2 py-0.5 rounded">{item.honor}</span>}

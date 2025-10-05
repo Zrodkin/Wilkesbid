@@ -10,7 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 interface AuctionItemData {
   id: string
-  title: string
+  service: string
+  honor: string
   description?: string
   current_bid: number
   current_bidder?: {
@@ -89,7 +90,7 @@ export function MoveBidModal({ item, onClose, allItems }: MoveBidModalProps) {
         <div className="space-y-4">
           <div className="bg-neutral-800 p-4 rounded-lg space-y-2 border border-neutral-700">
             <div className="text-sm text-neutral-400">Moving from:</div>
-            <div className="text-white font-medium text-lg">{item.title}</div>
+            <div className="text-white font-medium text-lg">{item.service} - {item.honor}</div>
             {item.description && (
               <div className="text-sm text-neutral-500">{item.description}</div>
             )}
@@ -112,7 +113,7 @@ export function MoveBidModal({ item, onClose, allItems }: MoveBidModalProps) {
                     className="hover:bg-neutral-700 focus:bg-neutral-700 cursor-pointer"
                   >
                     <div className="flex flex-col">
-                      <span className="font-medium">{targetItem.title}</span>
+                      <span className="font-medium">{targetItem.service} - {targetItem.honor}</span>
                       <span className="text-xs text-neutral-400">
                         Current: ${targetItem.current_bid.toLocaleString()}
                       </span>

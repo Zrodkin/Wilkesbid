@@ -127,7 +127,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
           body: JSON.stringify({
             id: item.id,
             templateId: selectedTemplate.id,
-            title: item.title,
             service: item.service,
             honor: item.honor,
             description: item.description,
@@ -322,7 +321,6 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
           holidayName: selectedTemplate.name,
           services,
           items: items.map((item, index) => ({
-            title: item.title,
             service: item.service,
             honor: item.honor,
             description: item.description || null,
@@ -565,8 +563,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                       className="flex items-center justify-between p-3 bg-neutral-800 rounded border border-neutral-700"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-white">{item.title}</p>
-                        <p className="text-sm text-neutral-400">
+                        <p className="font-medium text-white">{item.service} - {item.honor}</p>                        <p className="text-sm text-neutral-400">
                           {item.service} - {item.honor} - Starting: ${item.startingBid}
                         </p>
                       </div>

@@ -9,7 +9,8 @@ import { X } from 'lucide-react';
 interface BidModalProps {
   item: {
     id: string;
-    title: string;
+    service: string;
+    honor: string;
     current_bid: number;
     minimum_increment: number;
   };
@@ -68,7 +69,7 @@ export function BidModal({ item, onClose }: BidModalProps) {
             <h2 className="text-2xl sm:text-3xl font-bold text-[#C9A961] mb-2">
               Place Bid
             </h2>
-            <p className="text-white font-medium">{item.title}</p>
+            <p className="text-white font-medium">{item.service} - {item.honor}</p>
           </div>
           <button
             onClick={onClose}
@@ -133,47 +134,37 @@ export function BidModal({ item, onClose }: BidModalProps) {
               Your Bid Amount
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#C9A961] font-bold text-lg">
-                $
-              </span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 text-lg">$</span>
               <input
                 {...register('bidAmount', { 
                   required: 'Bid amount is required',
-                  valueAsNumber: true,
                   min: {
                     value: minimumBid,
-                    message: `Bid must be at least ${minimumBid.toLocaleString()}`
+                    message: `Minimum bid is $${minimumBid}`
                   }
                 })}
                 type="number"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 bg-neutral-900 border-2 border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/20 transition-all text-lg font-semibold"
-                placeholder={`Minimum Bid: ${minimumBid.toLocaleString()}`}
+                className="w-full pl-8 pr-4 py-3 bg-neutral-900 border-2 border-neutral-700 rounded-lg text-white text-lg font-semibold placeholder:text-neutral-500 focus:outline-none focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/20 transition-all"
+                placeholder={minimumBid.toString()}
               />
             </div>
             {errors.bidAmount && (
               <p className="text-red-400 text-sm mt-1.5">{errors.bidAmount.message}</p>
             )}
+            <p className="text-xs text-neutral-500 mt-2">
+              Minimum bid: ${minimumBid.toLocaleString()}
+            </p>
           </div>
           
-          {/* Buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-3 border-2 border-neutral-600 text-neutral-300 rounded-lg hover:bg-neutral-700 transition-colors font-medium"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-4 py-3 bg-[#C9A961] text-neutral-950 rounded-lg hover:bg-[#C9A961]/90 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Placing Bid...' : 'Place Bid'}
-            </button>
-          </div>
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-[#C9A961] hover:bg-[#B89851] disabled:bg-neutral-700 disabled:cursor-not-allowed text-black font-bold py-3.5 px-4 rounded-lg transition-all text-lg shadow-lg hover:shadow-xl disabled:shadow-none"
+          >
+            {isSubmitting ? 'Placing Bid...' : 'Place Bid'}
+          </button>
         </form>
       </div>
     </div>
