@@ -17,6 +17,7 @@ interface AuctionItemData {
   starting_bid: number;
   minimum_increment: number;
   display_order: number;
+  is_paid?: boolean;
   current_bidder?: {
     full_name: string;
     email: string;
@@ -63,6 +64,7 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
                 starting_bid,
                 minimum_increment,
                 display_order,
+                is_paid,
                 current_bidder:bidders!current_bidder_id(full_name, email)
               `)
               .eq('id', payload.new.id)

@@ -44,6 +44,7 @@ export default async function Home() {
       starting_bid,
       minimum_increment,
       display_order,
+      is_paid,
       current_bidder:bidders!current_bidder_id(full_name, email)
     `)
     .eq('auction_id', auction.id)

@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { BidModal } from './bid-modal';
 import { PaymentModal } from './payment-modal';
-import { ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
+import { ChevronDown, ChevronUp, CreditCard, CheckCircle } from 'lucide-react';
 
 interface AuctionItemData {
   id: string;
@@ -17,6 +17,7 @@ interface AuctionItemData {
     full_name: string;
     email: string;
   };
+  is_paid?: boolean;
 }
 
 interface AuctionItemProps {
@@ -134,24 +135,33 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
 
         {/* Action Button */}
         {hasWinner ? (
-          <button
-            onClick={() => setShowPaymentModal(true)}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
-          >
-            <CreditCard className="h-4 w-4" />
-            Pay Now
-          </button>
+          item.is_paid ? (
+            <button
+              disabled
+              className="w-full bg-green-600 text-white font-medium py-2.5 px-4 rounded-lg text-sm cursor-not-allowed opacity-75"
+            >
+              ✓ Paid
+            </button>
+          ) : (
+            <button
+              onClick={() => setShowPaymentModal(true)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              <CreditCard className="h-4 w-4" />
+              Pay Now
+            </button>
+          )
         ) : isEnded ? (
           <button
             disabled
-            className="w-full bg-neutral-700 text-neutral-500 font-medium py-3 px-4 rounded-lg text-sm cursor-not-allowed opacity-50"
+            className="w-full bg-gray-400 text-gray-600 font-medium py-2.5 px-4 rounded-lg text-sm cursor-not-allowed opacity-50"
           >
             No Winner
           </button>
         ) : (
           <button
             onClick={() => setShowBidModal(true)}
-            className="w-full bg-[#C9A961] hover:bg-[#C9A961]/90 text-neutral-950 font-semibold py-3 px-4 rounded-lg transition-colors text-sm"
+            className="w-full bg-[#C9A961] hover:bg-[#C9A961]/90 text-neutral-950 font-semibold py-2.5 px-4 rounded-lg transition-colors text-sm"
           >
             Place Bid
           </button>
