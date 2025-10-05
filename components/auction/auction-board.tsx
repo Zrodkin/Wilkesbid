@@ -10,8 +10,8 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 interface AuctionItemData {
   id: string;
   title: string;
-  service: string;        // ADDED BACK
-  honor: string;          // ADDED BACK
+  service: string;
+  honor: string;
   description?: string;
   current_bid: number;
   starting_bid: number;
@@ -49,14 +49,42 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
             schema: 'public',
             table: 'auction_items',
           },
-          (payload) => {
-            setItems((current) =>
-              current.map((item) =>
-                item.id === payload.new.id 
-                  ? { ...item, ...payload.new }
-                  : item
-              )
-            );
+          async (payload) => {
+            // ✅ FIX: Fetch the complete item data including the bidder relationship
+            const { data: updatedItem } = await supabase
+              .from('auction_items')
+              .select(`
+                id,
+                title,
+                service,
+                honor,
+                description,
+                current_bid,
+                starting_bid,
+                minimum_increment,
+                display_order,
+                current_bidder:bidders!current_bidder_id(full_name, email)
+              `)
+              .eq('id', payload.new.id)
+              .single();
+
+            if (updatedItem) {
+              // Transform the current_bidder from array to object
+              const transformedItem = {
+                ...updatedItem,
+                current_bidder: Array.isArray(updatedItem.current_bidder) 
+                  ? updatedItem.current_bidder[0] 
+                  : updatedItem.current_bidder
+              };
+
+              setItems((current) =>
+                current.map((item) =>
+                  item.id === payload.new.id 
+                    ? transformedItem
+                    : item
+                )
+              );
+            }
           }
         )
         .subscribe();
@@ -71,7 +99,6 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
     };
   }, [supabase]);
 
-  // UPDATED: Search now includes service and honor
   const filteredItems = items.filter(
     (item) =>
       item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -96,8 +123,7 @@ export function AuctionBoard({ items: initialItems, isEnded }: AuctionBoardProps
       })
     : [...filteredItems].sort((a, b) => a.display_order - b.display_order);
 
-  // ADDED BACK: Service list for grouping
-const services = [...new Set(items.map(item => item.service))].filter(Boolean);
+  const services = [...new Set(items.map(item => item.service))].filter(Boolean);
 
   return (
     <div className="space-y-6 sm:space-y-8">
@@ -183,7 +209,7 @@ const services = [...new Set(items.map(item => item.service))].filter(Boolean);
             </div>
           </section>
         ) : (
-          // WHEN NO FILTER: Group by service (RESTORED FROM OLD VERSION)
+          // WHEN NO FILTER: Group by service
           services.map((service, index) => {
             const serviceItems = sortedItems.filter((item) => item.service === service);
             if (serviceItems.length === 0) return null;
@@ -236,7 +262,7 @@ const services = [...new Set(items.map(item => item.service))].filter(Boolean);
                   )}
                 </div>
 
-                {/* Items Grid for this service */}
+                {/* Items Grid */}
                 <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {serviceItems.map((item) => (
                     <AuctionItem 
@@ -249,15 +275,6 @@ const services = [...new Set(items.map(item => item.service))].filter(Boolean);
               </section>
             );
           })
-        )}
-
-        {/* No Results */}
-        {sortedItems.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-lg text-neutral-400">
-              No honors found matching "{searchQuery}"
-            </p>
-          </div>
         )}
       </div>
     </div>
