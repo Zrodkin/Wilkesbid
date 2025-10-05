@@ -76,21 +76,29 @@ export async function sendOutbidNotification(options: OutbidNotification) {
   }
 }
 
-export async function sendWinnerNotifications() {
+export async function sendWinnerNotifications(auctionId?: string) {
   const supabase = await createClient();
   
   try {
-    // Get all winners who haven't been notified
-    const { data: winners } = await supabase
+    // Build query to get all winners
+    let query = supabase
       .from('auction_items')
       .select(`
         id,
         title,
         current_bid,
         current_bidder_id,
+        auction_id,
         current_bidder:bidders!inner(email, full_name)
       `)
       .not('current_bidder_id', 'is', null);
+    
+    // If auction_id is provided, filter by that specific auction
+    if (auctionId) {
+      query = query.eq('auction_id', auctionId);
+    }
+    
+    const { data: winners } = await query;
     
     if (!winners || winners.length === 0) return;
     
@@ -116,7 +124,6 @@ export async function sendWinnerNotifications() {
       });
       acc[email].total += Number(item.current_bid);
       return acc;
-    // 👇 FIX 1 (cont.): Applied the new type here instead of 'any'.
     }, {} as Record<string, WinnerInvoiceData>); 
     
     // Send emails
@@ -132,7 +139,6 @@ export async function sendWinnerNotifications() {
       if (existing) continue;
       
       try {
-        // 👇 FIX 2: Removed ': any' as TypeScript can now infer the item type.
         const itemsList = data.items.map((item) => 
           `<li>${item.title}: <strong>$${item.amount.toFixed(2)}</strong></li>`
         ).join('');

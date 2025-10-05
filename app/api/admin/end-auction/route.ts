@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifyAdmin } from '@/lib/auth';
+import { sendWinnerNotifications } from '@/lib/email/sender';
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,13 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
+    // Get the active auction before ending it
+    const { data: activeAuction } = await supabase
+      .from('auction_config')
+      .select('id')
+      .eq('status', 'active')
+      .single();
+
     // End any active auctions
     const { error } = await supabase
       .from('auction_config')
@@ -19,6 +27,11 @@ export async function POST(request: Request) {
       .eq('status', 'active');
 
     if (error) throw error;
+
+    // Send winner notifications for the specific auction that was just ended
+    if (activeAuction) {
+      await sendWinnerNotifications(activeAuction.id);
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
