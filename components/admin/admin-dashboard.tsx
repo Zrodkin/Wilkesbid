@@ -10,7 +10,7 @@ import { MoveBidModal } from './move-bid-modal';
 import { BidHistoryModal } from './bid-history-modal';
 import { CreateItemModal } from './create-item-modal';
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { Search, LogOut, Edit, ArrowRightLeft, History, Plus, RefreshCw } from 'lucide-react';
+import { Search, LogOut, Edit, ArrowRightLeft, History, Plus, RefreshCw, X } from 'lucide-react';
 
 interface Auction {
   id: number;
@@ -52,11 +52,18 @@ export function AdminDashboard() {
   const supabase = createClient();
 
   const loadAuctionStatus = useCallback(async () => {
-    const { data: auctionData } = await supabase
+    // FIXED: Get the most recent active/ended auction, handle multiple or zero results
+    const { data: auctionData, error: auctionError } = await supabase
       .from('auction_config')
       .select('*')
       .in('status', ['active', 'ended'])
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle(); // ✅ Changed from .single() to .maybeSingle()
+
+    if (auctionError) {
+      console.error('Error loading auction:', auctionError);
+    }
 
     setAuction(auctionData);
 
@@ -265,102 +272,108 @@ export function AdminDashboard() {
                   </p>
                   <button
                     onClick={handleStartNewAuction}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
+                    className="px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-medium"
                   >
-                    <RefreshCw className="h-4 w-4" />
                     Start New Auction
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Search Bar */}
-            <div className="mb-6">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+            {/* Search */}
+            <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Search className="h-5 w-5 text-neutral-400" />
                 <input
                   type="text"
-                  placeholder="Search items..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 bg-neutral-900 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-[#C9A961] focus:ring-2 focus:ring-[#C9A961]/20"
+                  placeholder="Search items, services, honors, or bidders..."
+                  className="flex-1 bg-transparent text-white placeholder:text-neutral-500 focus:outline-none"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="text-neutral-400 hover:text-white"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Items Table */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-lg overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-neutral-800 bg-neutral-800/50">
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Item</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Service</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Current Bid</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-400">Bidder</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-neutral-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredItems.map((item, index) => (
-                      <tr
-                        key={item.id}
-                        className={index % 2 === 0 ? 'bg-neutral-900' : 'bg-neutral-800/50'}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="text-sm text-white font-medium">{item.title}</div>
-                          {item.honor && (
-                            <div className="text-xs text-neutral-500 mt-1">{item.honor}</div>
-                          )}
-                          {item.description && (
-                            <div className="text-xs text-neutral-400 mt-1">{item.description}</div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3">
-                          {item.service && (
-                            <span className="text-xs bg-[#C9A961] text-black px-2 py-1 rounded">
-                              {item.service}
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-[#C9A961] font-semibold">
-                          ${item.current_bid.toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-neutral-300">
-                          {item.current_bidder?.full_name || '-'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => openModal('edit', item)}
-                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
-                              title="Edit Bid"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => openModal('move', item)}
-                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
-                              title="Move Bid"
-                              disabled={!item.current_bidder}
-                            >
-                              <ArrowRightLeft className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => openModal('history', item)}
-                              className="p-2 text-neutral-400 hover:text-[#C9A961] hover:bg-neutral-800 rounded transition-colors"
-                              title="Bid History"
-                            >
-                              <History className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+            {/* Items Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 hover:border-[#C9A961]/50 transition-colors"
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-white mb-1">{item.title}</h3>
+                      <div className="flex gap-2 mb-2">
+                        {item.service && (
+                          <span className="text-xs bg-[#C9A961] text-black px-2 py-0.5 rounded">
+                            {item.service}
+                          </span>
+                        )}
+                        {item.honor && (
+                          <span className="text-xs bg-neutral-700 text-neutral-300 px-2 py-0.5 rounded">
+                            {item.honor}
+                          </span>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="text-sm text-neutral-400 mb-2">{item.description}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <div className="text-2xl font-bold text-[#C9A961]">
+                      ${item.current_bid.toFixed(2)}
+                    </div>
+                    {item.current_bidder && (
+                      <div className="text-sm text-neutral-400 mt-1">
+                        <span className="font-medium text-white">{item.current_bidder.full_name}</span>
+                        <br />
+                        <span className="text-xs">{item.current_bidder.email}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openModal('edit', item)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded transition-colors text-sm"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => openModal('move', item)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded transition-colors text-sm"
+                    >
+                      <ArrowRightLeft className="h-4 w-4" />
+                      Move
+                    </button>
+                    <button
+                      onClick={() => openModal('history', item)}
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded transition-colors text-sm"
+                    >
+                      <History className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
+
+            {filteredItems.length === 0 && (
+              <div className="text-center py-12 text-neutral-400">
+                {searchQuery ? 'No items match your search' : 'No auction items yet'}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -376,8 +389,8 @@ export function AdminDashboard() {
         <BidHistoryModal item={selectedItem} onClose={closeModal} />
       )}
       {activeModal === 'create' && auction && (
-        <CreateItemModal 
-          onClose={closeModal} 
+        <CreateItemModal
+          onClose={closeModal}
           onItemCreated={closeModal}
           services={auction.services || []}
         />

@@ -7,12 +7,18 @@ import Image from 'next/image';
 export default async function Home() {
   const supabase = await createClient();
   
-  // Get active auction
-  const { data: auction } = await supabase
+  // Get active auction - FIXED: Use maybeSingle() and order by created_at
+  const { data: auction, error: auctionError } = await supabase
     .from('auction_config')
     .select('*')
     .in('status', ['active', 'ended'])
-    .single();
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle(); // ✅ Changed from .single() to .maybeSingle()
+  
+  if (auctionError) {
+    console.error('Error loading auction:', auctionError);
+  }
   
   if (!auction) {
     return (
@@ -26,30 +32,30 @@ export default async function Home() {
   }
   
   // Get auction items
- const { data: items } = await supabase
-  .from('auction_items')
-  .select(`
-    id,
-    title,
-    service,
-    honor,
-    description,
-    current_bid,
-    starting_bid,
-    minimum_increment,
-    display_order,
-    current_bidder:bidders!current_bidder_id(full_name, email)
-  `)
+  const { data: items } = await supabase
+    .from('auction_items')
+    .select(`
+      id,
+      title,
+      service,
+      honor,
+      description,
+      current_bid,
+      starting_bid,
+      minimum_increment,
+      display_order,
+      current_bidder:bidders!current_bidder_id(full_name, email)
+    `)
     .eq('auction_id', auction.id)
     .order('display_order');
 
-    // Transform the data to fix current_bidder
-const transformedItems = items?.map(item => ({
-  ...item,
-  current_bidder: Array.isArray(item.current_bidder) 
-    ? item.current_bidder[0] 
-    : item.current_bidder
-})) || [];
+  // Transform the data to fix current_bidder
+  const transformedItems = items?.map(item => ({
+    ...item,
+    current_bidder: Array.isArray(item.current_bidder) 
+      ? item.current_bidder[0] 
+      : item.current_bidder
+  })) || [];
   
   const isAuctionEnded = auction.status === 'ended';
   const holidayName = auction.holiday_name || 'Yom Kippur';
@@ -85,7 +91,6 @@ const transformedItems = items?.map(item => ({
             <div className="space-y-3 sm:space-y-4">
               <h1 className="font-sans text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-[#C9A961] tracking-tight leading-tight">
                 {holidayName} Honors Auction
-
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-[#C9A961]/80 max-w-2xl mx-auto leading-relaxed">
                 Bid on meaningful honors for the High Holy Days
@@ -104,10 +109,10 @@ const transformedItems = items?.map(item => ({
       {/* Auction Items */}
       <div className="bg-neutral-900">
         <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-10 md:py-12">
-         <AuctionBoard 
-  items={transformedItems} 
-  isEnded={isAuctionEnded}
-/>
+          <AuctionBoard 
+            items={transformedItems} 
+            isEnded={isAuctionEnded}
+          />
         </div>
       </div>
 
