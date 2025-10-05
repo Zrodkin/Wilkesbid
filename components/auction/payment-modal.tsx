@@ -50,7 +50,7 @@ export function PaymentModal({ item, winner, onClose }: PaymentModalProps) {
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           {paymentMethods.map((method) => (
-            
+            <a
               key={method.name}
               href={method.url}
               target="_blank"
