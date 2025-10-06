@@ -1,10 +1,11 @@
 // components/auction/auction-item.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BidModal } from './bid-modal';
 import { PaymentModal } from './payment-modal';
-import { ChevronDown, ChevronUp, CreditCard, CheckCircle } from 'lucide-react';
+import { StripeCheckoutModal } from './stripe-checkout-modal';
+import { ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 
 interface AuctionItemData {
   id: string;
@@ -29,8 +30,29 @@ interface AuctionItemProps {
 export function AuctionItem({ item, isEnded }: AuctionItemProps) {
   const [showBidModal, setShowBidModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showStripeCheckout, setShowStripeCheckout] = useState(false);
   const [showBidHistory, setShowBidHistory] = useState(false);
   const [bidHistory, setBidHistory] = useState<Array<{ bidder_name: string; bid_amount: number }>>([]);
+  const [isStripeConnected, setIsStripeConnected] = useState(false);
+  const [checkingStripe, setCheckingStripe] = useState(true);
+
+  // Check if Stripe is connected
+  useEffect(() => {
+    checkStripeConnection();
+  }, []);
+
+  const checkStripeConnection = async () => {
+    try {
+      const response = await fetch('/api/stripe/is-connected');
+      const data = await response.json();
+      setIsStripeConnected(data.connected);
+    } catch (error) {
+      console.error('Failed to check Stripe connection:', error);
+      setIsStripeConnected(false);
+    } finally {
+      setCheckingStripe(false);
+    }
+  };
 
   // Fetch bid history when dropdown is opened
   const toggleBidHistory = async (e: React.MouseEvent) => {
@@ -47,25 +69,39 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
     setShowBidHistory(!showBidHistory);
   };
 
+  const handlePayNow = () => {
+    if (isStripeConnected) {
+      setShowStripeCheckout(true);
+    } else {
+      setShowPaymentModal(true);
+    }
+  };
+
+  const handleStripeSuccess = () => {
+    setShowStripeCheckout(false);
+    // Optionally refresh the page or update item state
+    window.location.reload();
+  };
+
   const hasWinner = isEnded && item.current_bidder;
 
   return (
     <>
-    <div className="w-full bg-neutral-800 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:border-[#C9A961]/50 transition-all">
-  {/* Price and Service/Honor */}
-  <div className="space-y-2 mb-4">
-    <div className="text-3xl sm:text-4xl font-bold text-[#C9A961]">
-      ${item.current_bid.toLocaleString()}
-    </div>
-    <div className="text-base sm:text-lg text-white font-medium leading-tight">
-      {item.service} - {item.honor}
-    </div>
-    {item.description && (
-      <div className="text-sm text-neutral-400">
-        {item.description}
-      </div>
-    )}
-  </div>
+      <div className="w-full bg-neutral-800 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-5 hover:shadow-xl hover:border-[#C9A961]/50 transition-all">
+        {/* Price and Service/Honor */}
+        <div className="space-y-2 mb-4">
+          <div className="text-3xl sm:text-4xl font-bold text-[#C9A961]">
+            ${item.current_bid.toLocaleString()}
+          </div>
+          <div className="text-base sm:text-lg text-white font-medium leading-tight">
+            {item.service} - {item.honor}
+          </div>
+          {item.description && (
+            <div className="text-sm text-neutral-400">
+              {item.description}
+            </div>
+          )}
+        </div>
 
         {/* Winner/Bidder Section */}
         {hasWinner ? (
@@ -145,11 +181,12 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
             </button>
           ) : (
             <button
-              onClick={() => setShowPaymentModal(true)}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2"
+              onClick={handlePayNow}
+              disabled={checkingStripe}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <CreditCard className="h-4 w-4" />
-              Pay Now
+              {checkingStripe ? 'Loading...' : 'Pay Now'}
             </button>
           )
         ) : isEnded ? (
@@ -173,6 +210,15 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
         <BidModal
           item={item}
           onClose={() => setShowBidModal(false)}
+        />
+      )}
+
+      {showStripeCheckout && hasWinner && (
+        <StripeCheckoutModal
+          items={[item]}
+          bidderEmail={item.current_bidder!.email}
+          onClose={() => setShowStripeCheckout(false)}
+          onSuccess={handleStripeSuccess}
         />
       )}
 

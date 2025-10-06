@@ -71,19 +71,6 @@ export function CreateItemModal({ services, onClose, onItemCreated }: CreateItem
         <div className="p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1 text-neutral-400">
-              Item Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Petach - Opening the Ark"
-              className="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 rounded text-white focus:outline-none focus:ring-2 focus:ring-[#C9A961]/50"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1 text-neutral-400">
               Service *
             </label>
             <select
@@ -166,8 +153,8 @@ export function CreateItemModal({ services, onClose, onItemCreated }: CreateItem
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || !title || !service || !honor}
-            className="flex-1 px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            disabled={isSubmitting}
+            className="flex-1 px-4 py-2 bg-[#C9A961] hover:bg-[#B89851] text-black font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Creating...' : 'Create Item'}
           </button>

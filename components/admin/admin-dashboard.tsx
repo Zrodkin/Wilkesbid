@@ -23,6 +23,8 @@ import {
   Clock,
 } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '@/lib/export-utils';
+import { StripeConnectButton } from './stripe-connect-button';
+import { PaymentSettingsPanel } from './payment-settings-panel';
 
 interface Auction {
   id: number;
@@ -267,6 +269,13 @@ export function AdminDashboard() {
     <div className="min-h-screen bg-neutral-950 text-white p-6">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
+
+        {/* Stripe Connect Banner */}
+        <StripeConnectButton />
+
+        {/* Payment Settings - Show only when auction exists */}
+        {auction && <PaymentSettingsPanel />}
+
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[#C9A961]">Admin Dashboard</h1>
           <div className="flex gap-2">
@@ -488,7 +497,7 @@ export function AdminDashboard() {
                               <History className="h-3 w-3" />
                               History
                             </button>
-                            {item.current_bidder && (
+                            {auction.status === 'ended' && item.current_bidder && (
                               <button
                                 onClick={() => handleTogglePaid(item.id, item.is_paid || false)}
                                 className={`px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 ${
@@ -567,7 +576,7 @@ export function AdminDashboard() {
                       <History className="h-3 w-3" />
                       History
                     </button>
-                    {item.current_bidder && (
+                    {auction.status === 'ended' && item.current_bidder && (
                       <button
                         onClick={() => handleTogglePaid(item.id, item.is_paid || false)}
                         className={`flex-1 px-3 py-2 rounded text-xs font-medium flex items-center justify-center gap-1.5 ${

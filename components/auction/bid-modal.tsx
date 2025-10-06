@@ -138,6 +138,7 @@ export function BidModal({ item, onClose }: BidModalProps) {
               <input
                 {...register('bidAmount', { 
                   required: 'Bid amount is required',
+                  valueAsNumber: true,
                   min: {
                     value: minimumBid,
                     message: `Minimum bid is $${minimumBid}`

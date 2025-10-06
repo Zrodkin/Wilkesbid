@@ -13,14 +13,16 @@ export async function POST(request: Request) {
     const { service, honor, description, startingBid, minimumIncrement } = await request.json();
     const supabase = await createClient();
 
-    // Get the current active auction
-    const { data: auction } = await supabase
+    // Get the current active/ended auction (most recent one)
+    const { data: auction, error: auctionError } = await supabase
       .from('auction_config')
       .select('id')
       .in('status', ['active', 'ended'])
-      .single();
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (!auction) {
+    if (auctionError || !auction) {
       return NextResponse.json({ error: 'No active auction found' }, { status: 400 });
     }
 
@@ -31,7 +33,7 @@ export async function POST(request: Request) {
       .eq('auction_id', auction.id)
       .order('display_order', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     const nextOrder = (maxOrderItem?.display_order || 0) + 1;
 

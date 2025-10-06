@@ -1,9 +1,12 @@
 // components/admin/auction-setup.tsx
 'use client';
 
+//reforce
+
+
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { Plus, X, Loader2, Check, Edit } from 'lucide-react';
+import { Plus, X, Loader2, Check, Edit, CreditCard } from 'lucide-react';
 import { AddTemplateModal } from './add-template-modal';
 import { EditTemplateItemModal } from './edit-template-item-modal';
 import { DateTimePicker } from '@/components/ui/date-time-picker';
@@ -473,6 +476,22 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
                 </button>
               </div>
             </div>
+
+            {/* Payment Settings Info Box */}
+{selectedTemplate && (
+  <div className="mb-6 p-4 border border-blue-700 rounded-lg bg-blue-900/20">
+    <h3 className="font-semibold mb-3 text-blue-300 flex items-center gap-2">
+      <CreditCard className="h-5 w-5" />
+      Payment Settings
+    </h3>
+    <p className="text-sm text-blue-200 mb-2">
+      Payment settings (Stripe integration and installments) are configured globally in the admin dashboard.
+    </p>
+    <p className="text-xs text-blue-300">
+      Winners will be able to pay using Stripe if it's connected, or use the manual payment links as a fallback.
+    </p>
+  </div>
+)}
 
             {/* Add Item Form */}
             <div className="mb-6 p-4 border border-neutral-700 rounded-lg bg-neutral-800/50">
