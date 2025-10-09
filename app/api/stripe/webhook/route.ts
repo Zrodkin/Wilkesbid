@@ -8,6 +8,9 @@ import Stripe from 'stripe';
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(request: Request) {
+  console.log('🔔 WEBHOOK HIT - URL:', request.url);
+  console.log('🔔 WEBHOOK HIT - Method:', request.method);
+  console.log('🔔 WEBHOOK HIT - Headers:', Object.fromEntries(request.headers));  
   try {
     const body = await request.text();
     const headersList = await headers();
