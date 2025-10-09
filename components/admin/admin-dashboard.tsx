@@ -264,7 +264,7 @@ export function AdminDashboard() {
     );
   }
 
-  return (
+ return (
     <div className="min-h-screen bg-neutral-950 text-white p-6">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
@@ -273,19 +273,19 @@ export function AdminDashboard() {
         <StripeConnectButton />
 
         {/* Payment Settings - Show only when auction exists */}
-                 <div className="flex justify-between items-center">
+        <div className="flex flex-col gap-4">
           <h1 className="text-3xl font-bold text-[#C9A961]">Admin Dashboard</h1>
-          <div className="flex gap-2">
+          <div className="flex w-full gap-2">
             <button
               onClick={() => openModal('auction-history')}
-              className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
             >
               <Clock className="h-4 w-4" />
               Auction History
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors"
             >
               <LogOut className="h-4 w-4" />
               Logout
