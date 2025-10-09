@@ -93,7 +93,7 @@ export async function POST(request: Request) {
       metadata: generatePaymentMetadata(
         itemIds,
         bidderEmail,
-        items[0].auction_id
+        items[0].auction_id,
       ),
       description: `Auction payment for ${items.length} item(s)`,
       receipt_email: bidderEmail,
