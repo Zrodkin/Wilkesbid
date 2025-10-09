@@ -164,22 +164,23 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Stripe Elements */}
-        <Elements
-          stripe={stripePromise}
-          options={{
-            clientSecret,
-            appearance: {
-              theme: 'night',
-              variables: {
-                colorPrimary: '#C9A961',
-                colorBackground: '#171717',
-                colorText: '#ffffff',
-                colorDanger: '#ef4444',
-                borderRadius: '8px',
-              },
-            },
-          }}
-        >
+      <Elements
+  stripe={stripePromise}
+  options={{
+    clientSecret,
+    appearance: {
+      theme: 'night',
+      variables: {
+        colorPrimary: '#C9A961',
+        colorBackground: '#171717',
+        colorText: '#ffffff',
+        colorDanger: '#ef4444',
+        borderRadius: '8px',
+      },
+    },
+    loader: 'auto',
+  }}
+>
           <CheckoutForm
             onSuccess={onSuccess}
             onClose={onClose}
@@ -250,7 +251,12 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
         <label className="block text-sm font-medium text-neutral-300 mb-2">
           Payment Details
         </label>
-        <PaymentElement />
+        <PaymentElement 
+  options={{
+    layout: 'tabs',
+    paymentMethodOrder: ['card', 'cashapp', 'us_bank_account', 'affirm', 'amazon_pay'],
+  }}
+/>
       </div>
 
       {error && (
