@@ -246,7 +246,15 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
         <label className="block text-xs sm:text-sm font-medium text-neutral-300 mb-2">
           Payment Details
         </label>
-        <PaymentElement />
+        <PaymentElement /><PaymentElement 
+  options={{
+    fields: {
+      billingDetails: {
+        address: 'auto'
+      }
+    }
+  }}
+/>
       </div>
 
       {error && (
