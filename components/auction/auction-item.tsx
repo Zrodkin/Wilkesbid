@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { BidModal } from './bid-modal';
 import { PaymentModal } from './payment-modal';
 import { StripeCheckoutModal } from './stripe-checkout-modal';
-import { ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
-
+import { ChevronDown, ChevronUp, CreditCard, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AuctionItemData {
   id: string;
@@ -16,6 +16,7 @@ interface AuctionItemData {
   current_bid: number;
   starting_bid: number;
   minimum_increment: number;
+  display_order: number;
   current_bidder?: {
     full_name: string;
     email: string;
@@ -36,6 +37,8 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
   const [bidHistory, setBidHistory] = useState<Array<{ bidder_name: string; bid_amount: number }>>([]);
   const [isStripeConnected, setIsStripeConnected] = useState(false);
   const [checkingStripe, setCheckingStripe] = useState(true);
+  const [allUnpaidItems, setAllUnpaidItems] = useState<AuctionItemData[]>([]);
+  const [loadingPayment, setLoadingPayment] = useState(false);
 
   // Check if Stripe is connected
   useEffect(() => {
@@ -70,7 +73,42 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
     setShowBidHistory(!showBidHistory);
   };
 
-  const handlePayNow = () => {
+  // Fetch all unpaid items for this bidder
+  const fetchAllUnpaidItems = async () => {
+    if (!item.current_bidder?.email) return;
+
+    setLoadingPayment(true);
+    try {
+      const response = await fetch(
+        `/api/bidder/unpaid-items?email=${encodeURIComponent(item.current_bidder.email)}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch unpaid items');
+      }
+
+      const data = await response.json();
+      setAllUnpaidItems(data.items || []);
+      return data.items || [];
+    } catch (error) {
+      console.error('Failed to fetch unpaid items:', error);
+      toast.error('Failed to load payment information');
+      return [];
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+
+  const handlePayNow = async () => {
+    // Fetch all unpaid items for this bidder
+    const unpaidItems = await fetchAllUnpaidItems();
+
+    if (!unpaidItems || unpaidItems.length === 0) {
+      toast.error('No unpaid items found');
+      return;
+    }
+
+    // Open appropriate payment modal with ALL unpaid items
     if (isStripeConnected) {
       setShowStripeCheckout(true);
     } else {
@@ -80,7 +118,8 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
 
   const handleStripeSuccess = () => {
     setShowStripeCheckout(false);
-    // Optionally refresh the page or update item state
+    toast.success('Payment successful! All your items are now paid.');
+    // Refresh the page to update paid status
     window.location.reload();
   };
 
@@ -183,11 +222,22 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
           ) : (
             <button
               onClick={handlePayNow}
-              disabled={checkingStripe}
+              disabled={checkingStripe || loadingPayment}
               className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors text-sm flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <CreditCard className="h-4 w-4" />
-              {checkingStripe ? 'Loading...' : 'Pay Now'}
+              {loadingPayment ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading...
+                </>
+              ) : checkingStripe ? (
+                'Loading...'
+              ) : (
+                <>
+                  <CreditCard className="h-4 w-4" />
+                  Pay Now
+                </>
+              )}
             </button>
           )
         ) : isEnded ? (
@@ -214,18 +264,22 @@ export function AuctionItem({ item, isEnded }: AuctionItemProps) {
         />
       )}
 
-      {showStripeCheckout && hasWinner && (
+      {showStripeCheckout && hasWinner && allUnpaidItems.length > 0 && (
         <StripeCheckoutModal
-          items={[item]}
+          items={allUnpaidItems}
           bidderEmail={item.current_bidder!.email}
           onClose={() => setShowStripeCheckout(false)}
           onSuccess={handleStripeSuccess}
         />
       )}
 
-      {showPaymentModal && hasWinner && (
+      {showPaymentModal && hasWinner && allUnpaidItems.length > 0 && (
         <PaymentModal
-          item={item}
+          item={{
+            service: `${allUnpaidItems.length} Item${allUnpaidItems.length > 1 ? 's' : ''}`,
+            honor: 'Total Payment',
+            current_bid: allUnpaidItems.reduce((sum, i) => sum + i.current_bid, 0),
+          }}
           winner={item.current_bidder!}
           onClose={() => setShowPaymentModal(false)}
         />
