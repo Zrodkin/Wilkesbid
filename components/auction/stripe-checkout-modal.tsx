@@ -90,18 +90,17 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 overscroll-none">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
       {/* FIXED: Single scrollable container with proper mobile optimization */}
       <div 
-        className="w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-lg sm:my-8 bg-neutral-900 border-2 border-[#C9A961]/30 sm:rounded-2xl overflow-y-auto overscroll-contain"
+        className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-8 max-h-[95vh] overflow-y-auto overscroll-contain"
         style={{
           WebkitOverflowScrolling: 'touch',
           touchAction: 'pan-y',
         }}
       >
-        <div className="p-4 sm:p-6 md:p-8">
-          {/* Header - Sticky on mobile */}
-          <div className="flex items-start justify-between mb-4 sm:mb-6 sticky top-0 bg-neutral-900 -mx-4 sm:-mx-6 md:-mx-8 px-4 sm:px-6 md:px-8 py-4 z-10 border-b border-neutral-800 sm:border-0 sm:static sm:bg-transparent sm:p-0 sm:mb-6">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
             <div className="flex items-center gap-2 sm:gap-3">
               <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-2">
                 <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
@@ -197,7 +196,6 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
                 total={paymentDetails.total}
               />
             </Elements>
-          </div>
         </div>
       </div>
     </div>
