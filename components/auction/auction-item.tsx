@@ -7,6 +7,7 @@ import { PaymentModal } from './payment-modal';
 import { StripeCheckoutModal } from './stripe-checkout-modal';
 import { ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 
+
 interface AuctionItemData {
   id: string;
   service: string;
