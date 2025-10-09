@@ -76,10 +76,10 @@ export async function POST(request: Request) {
 const paymentIntent = await stripe.paymentIntents.create({
   amount: dollarsToCents(total),
   currency: 'usd',
-  automatic_payment_methods: {
+ /* automatic_payment_methods: {
     enabled: true,
     allow_redirects: 'always', // Enable redirect-based payment methods (Cash App, etc.)
-  },
+  }, */
   // Explicitly list payment method types for connected accounts
   payment_method_types: [
     'card',
