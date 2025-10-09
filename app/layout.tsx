@@ -4,8 +4,8 @@ import './globals.css';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
-  title: 'Live Auction',
-  description: 'Live bidding platform',
+  title: 'Simchas Torah Honors Auction',
+  description: 'Elevate your Yom Tov — bid on honors and help support Bais Menachem YDP.',
 };
 
 export default function RootLayout({
