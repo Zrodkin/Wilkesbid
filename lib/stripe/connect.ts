@@ -6,7 +6,7 @@ if (!process.env.STRIPE_CLIENT_ID) {
 }
 
 const STRIPE_CLIENT_ID = process.env.STRIPE_CLIENT_ID;
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+redirect_uri: `${SITE_URL}/api/stripe/connect/callback`
 
 /**
  * Generate Stripe Connect OAuth URL
