@@ -7,6 +7,7 @@ import { getStripe } from '@/lib/stripe/client-browser';
 import { X, Loader2, CreditCard, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/stripe/helpers';
+import type { Stripe } from '@stripe/stripe-js';
 
 interface StripeCheckoutModalProps {
   items: Array<{
@@ -24,6 +25,8 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [coverFee, setCoverFee] = useState(true);
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [paymentDetails, setPaymentDetails] = useState({
     subtotal: 0,
     processingFee: 0,
@@ -33,6 +36,12 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
   useEffect(() => {
     createPaymentIntent();
   }, [coverFee]);
+
+  useEffect(() => {
+    if (stripeAccountId) {
+      setStripePromise(getStripe(stripeAccountId));
+    }
+  }, [stripeAccountId]);
 
   const createPaymentIntent = async () => {
     setLoading(true);
@@ -54,6 +63,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
 
       const data = await response.json();
       setClientSecret(data.clientSecret);
+      setStripeAccountId(data.stripeAccountId);
       setPaymentDetails({
         subtotal: data.subtotal,
         processingFee: data.processingFee,
@@ -68,9 +78,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     }
   };
 
-  const stripePromise = getStripe();
-
-  if (!clientSecret || loading) {
+  if (!clientSecret || loading || !stripePromise) {
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-md w-full text-center">
@@ -198,8 +206,13 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🔍 stripe:', stripe);
+    console.log('🔍 elements:', elements);
+    console.log('🔍 payment element:', elements?.getElement('payment'));
 
     if (!stripe || !elements) {
+      console.log('❌ Missing stripe or elements');
       return;
     }
 
