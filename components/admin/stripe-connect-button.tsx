@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { CreditCard, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, ExternalLink } from 'lucide-react';
 
 interface AccountStatus {
   connected: boolean;
@@ -23,7 +23,6 @@ export function StripeConnectButton() {
   useEffect(() => {
     loadStatus();
     
-    // Check for OAuth callback params
     const params = new URLSearchParams(window.location.search);
     if (params.get('stripe_connected') === 'true') {
       toast.success('Stripe account connected successfully!');
@@ -54,7 +53,7 @@ export function StripeConnectButton() {
   };
 
   const handleDisconnect = async () => {
-    if (!confirm('Are you sure you want to disconnect your Stripe account? Payments will no longer work.')) {
+    if (!confirm('Disconnect Stripe? Credit card payments will no longer work.')) {
       return;
     }
 
@@ -84,72 +83,68 @@ export function StripeConnectButton() {
 
   if (loading) {
     return (
-      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-        <div className="flex items-center gap-3">
-          <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
-          <span className="text-neutral-400">Loading Stripe status...</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (status.connected) {
-    return (
-      <div className="bg-green-900/20 border border-green-700 rounded-lg p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
-            <CheckCircle className="h-6 w-6 text-green-500 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold text-white mb-1">
-                Stripe Connected
-              </h3>
-              <p className="text-sm text-neutral-400 mb-2">
-                Account ID: <code className="text-green-400">{status.accountId}</code>
-              </p>
-              <p className="text-xs text-neutral-500">
-                Connected on {new Date(status.connectedAt!).toLocaleString()}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={handleDisconnect}
-            disabled={disconnecting}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {disconnecting ? 'Disconnecting...' : 'Disconnect'}
-          </button>
+      <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+          <span className="text-sm text-neutral-400">Loading payment status...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-orange-900/20 border border-orange-700 rounded-lg p-6">
-      <div className="flex items-start justify-between">
+    <div className="bg-neutral-900 border border-neutral-800 rounded-lg p-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        {/* Left: Status Info */}
         <div className="flex items-start gap-3">
-          <XCircle className="h-6 w-6 text-orange-500 mt-1" />
-          <div>
-            <h3 className="text-lg font-semibold text-white mb-1">
-              Stripe Not Connected
-            </h3>
-            <p className="text-sm text-neutral-400 mb-3">
-              Connect your Stripe account to accept payments from auction winners.
-            </p>
-            <ul className="text-xs text-neutral-500 space-y-1 mb-4">
-              <li>• Winners can pay via credit/debit card</li>
-              <li>• Funds deposited directly to your account</li>
-              <li>• Automatic payment receipts</li>
-              <li>• No platform fees (standard Stripe rates apply)</li>
-            </ul>
-          </div>
+          {status.connected ? (
+            <>
+              <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-white">Stripe Connected</span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-500/10 text-green-500">
+                    Active
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 mt-1 break-all">
+                  {status.accountId}
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+              <div className="min-w-0 flex-1">
+                <span className="text-sm font-medium text-white block">Payment Processing</span>
+                <p className="text-xs text-neutral-400 mt-1">
+                  Connect Stripe to accept credit card payments
+                </p>
+              </div>
+            </>
+          )}
         </div>
-        <button
-          onClick={handleConnect}
-          className="flex items-center gap-2 px-6 py-3 bg-[#635BFF] hover:bg-[#5851EA] text-white rounded-lg transition-colors font-semibold"
-        >
-          <CreditCard className="h-5 w-5" />
-          Connect Stripe
-        </button>
+
+        {/* Right: Action Button */}
+        <div className="flex-shrink-0">
+          {status.connected ? (
+            <button
+              onClick={handleDisconnect}
+              disabled={disconnecting}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 border border-red-700 hover:bg-red-950 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {disconnecting ? 'Disconnecting...' : 'Disconnect'}
+            </button>
+          ) : (
+            <button
+              onClick={handleConnect}
+              className="w-full sm:w-auto px-4 py-2 text-sm font-semibold text-white bg-[#635BFF] hover:bg-[#5851EA] rounded-lg transition-colors inline-flex items-center justify-center gap-2"
+            >
+              <span>Connect with Stripe</span>
+              <ExternalLink className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

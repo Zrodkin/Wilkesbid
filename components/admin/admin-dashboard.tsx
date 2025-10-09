@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { exportToCSV, exportToExcel, exportToPDF } from '@/lib/export-utils';
 import { StripeConnectButton } from './stripe-connect-button';
-import { PaymentSettingsPanel } from './payment-settings-panel';
 
 interface Auction {
   id: number;
@@ -274,9 +273,7 @@ export function AdminDashboard() {
         <StripeConnectButton />
 
         {/* Payment Settings - Show only when auction exists */}
-        {auction && <PaymentSettingsPanel />}
-
-        <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-[#C9A961]">Admin Dashboard</h1>
           <div className="flex gap-2">
             <button
