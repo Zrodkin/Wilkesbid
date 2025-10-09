@@ -7,7 +7,6 @@ import { getStripe } from '@/lib/stripe/client-browser';
 import { X, Loader2, CreditCard, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '@/lib/stripe/helpers';
-import type { Stripe } from '@stripe/stripe-js';
 
 interface StripeCheckoutModalProps {
   items: Array<{
@@ -23,10 +22,10 @@ interface StripeCheckoutModalProps {
 
 export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: StripeCheckoutModalProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
+  const [stripePromise, setStripePromise] = useState<ReturnType<typeof getStripe> | null>(null);
   const [loading, setLoading] = useState(true);
   const [coverFee, setCoverFee] = useState(true);
-  const [stripeAccountId, setStripeAccountId] = useState<string | null>(null);
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
   const [paymentDetails, setPaymentDetails] = useState({
     subtotal: 0,
     processingFee: 0,
@@ -37,6 +36,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     createPaymentIntent();
   }, [coverFee]);
 
+  // Initialize Stripe when we have the connected account ID
   useEffect(() => {
     if (stripeAccountId) {
       setStripePromise(getStripe(stripeAccountId));
@@ -63,7 +63,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
 
       const data = await response.json();
       setClientSecret(data.clientSecret);
-      setStripeAccountId(data.stripeAccountId);
+      setStripeAccountId(data.stripeAccountId); // Store connected account ID
       setPaymentDetails({
         subtotal: data.subtotal,
         processingFee: data.processingFee,
@@ -78,7 +78,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     }
   };
 
-  if (!clientSecret || loading || !stripePromise) {
+  if (!clientSecret || !stripePromise || loading) {
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div className="bg-neutral-900 border-2 border-neutral-700 rounded-2xl p-8 max-w-md w-full text-center">
@@ -89,33 +89,34 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     );
   }
 
- return (
-  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
-    <div className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-4 sm:my-8 max-h-[95vh] overflow-y-auto">
-      {/* Header */}
-<div className="flex items-start justify-between mb-4 sm:mb-6">
-  <div className="flex items-center gap-2 sm:gap-3">
-    <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-1.5 sm:p-2">
-      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
-    </div>
-    <div>
-      <h2 className="text-xl sm:text-2xl font-bold text-white">Complete Payment</h2>
-      <p className="text-xs sm:text-sm text-neutral-400">{items.length} item(s)</p>
-    </div>
-  </div>
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-8 max-h-[95vh] overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-2">
+              <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Complete Payment</h2>
+              <p className="text-xs sm:text-sm text-neutral-400">{items.length} item(s)</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
             className="text-neutral-400 hover:text-white transition-colors"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
           </button>
         </div>
 
         {/* Items Summary */}
-<div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 max-h-32 sm:max-h-48 overflow-y-auto">          <h3 className="text-sm font-semibold text-neutral-400 mb-3">Your Items:</h3>
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 max-h-48 overflow-y-auto">
+          <h3 className="text-xs sm:text-sm font-semibold text-neutral-400 mb-2 sm:mb-3">Your Items:</h3>
           <div className="space-y-2">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
+              <div key={item.id} className="flex justify-between text-xs sm:text-sm">
                 <span className="text-white">{item.service} - {item.honor}</span>
                 <span className="text-[#C9A961] font-semibold">{formatCurrency(item.current_bid)}</span>
               </div>
@@ -124,16 +125,16 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Processing Fee Checkbox */}
-<div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-          <label className="flex items-start gap-3 cursor-pointer">
+        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <label className="flex items-start gap-2 sm:gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={coverFee}
               onChange={(e) => setCoverFee(e.target.checked)}
-              className="mt-1 h-5 w-5 rounded border-blue-500 bg-neutral-800 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+              className="mt-0.5 sm:mt-1 h-4 w-4 sm:h-5 sm:w-5 rounded border-blue-500 bg-neutral-800 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
             />
             <div className="flex-1">
-              <div className="text-white font-medium mb-1">
+              <div className="text-sm sm:text-base text-white font-medium mb-1">
                 Cover processing fees (recommended)
               </div>
               <div className="text-xs text-neutral-400">
@@ -144,43 +145,42 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Payment Breakdown */}
-<div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2">
-          <div className="flex justify-between text-sm">
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className="text-neutral-400">Subtotal:</span>
             <span className="text-white font-semibold">{formatCurrency(paymentDetails.subtotal)}</span>
           </div>
           {coverFee && (
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-xs sm:text-sm">
               <span className="text-neutral-400">Processing Fee:</span>
               <span className="text-white font-semibold">{formatCurrency(paymentDetails.processingFee)}</span>
             </div>
           )}
           <div className="border-t border-neutral-700 pt-2 mt-2">
             <div className="flex justify-between">
-              <span className="text-white font-bold">Total:</span>
-              <span className="text-[#C9A961] font-bold text-xl">{formatCurrency(paymentDetails.total)}</span>
+              <span className="text-sm sm:text-base text-white font-bold">Total:</span>
+              <span className="text-[#C9A961] font-bold text-lg sm:text-xl">{formatCurrency(paymentDetails.total)}</span>
             </div>
           </div>
         </div>
 
         {/* Stripe Elements */}
-      <Elements
-  stripe={stripePromise}
-  options={{
-    clientSecret,
-    appearance: {
-      theme: 'night',
-      variables: {
-        colorPrimary: '#C9A961',
-        colorBackground: '#171717',
-        colorText: '#ffffff',
-        colorDanger: '#ef4444',
-        borderRadius: '8px',
-      },
-    },
-    loader: 'auto',
-  }}
->
+        <Elements
+          stripe={stripePromise}
+          options={{
+            clientSecret,
+            appearance: {
+              theme: 'night',
+              variables: {
+                colorPrimary: '#C9A961',
+                colorBackground: '#171717',
+                colorText: '#ffffff',
+                colorDanger: '#ef4444',
+                borderRadius: '8px',
+              },
+            },
+          }}
+        >
           <CheckoutForm
             onSuccess={onSuccess}
             onClose={onClose}
@@ -206,13 +206,8 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    console.log('🔍 stripe:', stripe);
-    console.log('🔍 elements:', elements);
-    console.log('🔍 payment element:', elements?.getElement('payment'));
 
     if (!stripe || !elements) {
-      console.log('❌ Missing stripe or elements');
       return;
     }
 
@@ -246,44 +241,39 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       <div>
-        <label className="block text-sm font-medium text-neutral-300 mb-2">
+        <label className="block text-xs sm:text-sm font-medium text-neutral-300 mb-2">
           Payment Details
         </label>
-        <PaymentElement 
-  options={{
-    layout: 'tabs',
-    paymentMethodOrder: ['card', 'cashapp', 'us_bank_account', 'affirm', 'amazon_pay'],
-  }}
-/>
+        <PaymentElement />
       </div>
 
       {error && (
         <div className="bg-red-900/20 border border-red-700 rounded-lg p-3 flex items-start gap-2">
-          <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
-          <p className="text-sm text-red-400">{error}</p>
+          <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 mt-0.5 flex-shrink-0" />
+          <p className="text-xs sm:text-sm text-red-400">{error}</p>
         </div>
       )}
 
-      <div className="flex gap-3">
+      <div className="flex gap-2 sm:gap-3">
         <button
           type="button"
           onClick={onClose}
           disabled={processing}
-          className="flex-1 px-4 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors font-medium disabled:opacity-50"
+          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors text-sm sm:text-base font-medium disabled:opacity-50"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={!stripe || processing}
-          className="flex-1 px-4 py-3 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 bg-[#C9A961] hover:bg-[#B89851] text-black rounded-lg transition-colors text-sm sm:text-base font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {processing ? (
             <>
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Processing...
+              <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              <span className="hidden sm:inline">Processing...</span>
             </>
           ) : (
             `Pay ${formatCurrency(total)}`

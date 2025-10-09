@@ -72,34 +72,24 @@ export async function POST(request: Request) {
     // Calculate total with optional fee
     const { total, processingFee } = calculatePaymentTotal(subtotal, coverProcessingFee);
     
-   // Create payment intent with all enabled payment methods
-const paymentIntent = await stripe.paymentIntents.create({
-  amount: dollarsToCents(total),
-  currency: 'usd',
- /* automatic_payment_methods: {
-    enabled: true,
-    allow_redirects: 'always', // Enable redirect-based payment methods (Cash App, etc.)
-  }, */
-  // Explicitly list payment method types for connected accounts
-  payment_method_types: [
-    'card',
-    'link',
-    'cashapp',
-    'us_bank_account',
-    'affirm',
-    'amazon_pay',
-  ],
-  metadata: generatePaymentMetadata(
-    itemIds,
-    bidderEmail,
-    items[0].auction_id
-  ),
-  description: `Auction payment for ${items.length} item(s)`,
-  receipt_email: bidderEmail,
-  application_fee_amount: 0, // No platform fee
-}, {
-  stripeAccount: stripeAccount.stripe_account_id,
-});
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: dollarsToCents(total),
+      currency: 'usd',
+      automatic_payment_methods: {
+        enabled: true,
+      },
+      metadata: generatePaymentMetadata(
+        itemIds,
+        bidderEmail,
+        items[0].auction_id
+      ),
+      description: `Auction payment for ${items.length} item(s)`,
+      receipt_email: bidderEmail,
+      application_fee_amount: 0, // No platform fee
+    }, {
+      stripeAccount: stripeAccount.stripe_account_id,
+    });
     
     // Store payment record
     await supabase.from('stripe_payments').insert({
