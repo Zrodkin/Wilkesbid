@@ -91,112 +91,110 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
-      {/* FIXED: Single scrollable container with proper mobile optimization */}
+      {/* SCROLL FIX: Added overscroll-contain and touch optimization */}
       <div 
-        className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-8 max-h-[95vh] overflow-y-auto overscroll-contain"
+        className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-8 max-h-[95vh] overflow-y-auto"
         style={{
           WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-y',
+          overscrollBehavior: 'contain',
         }}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-2">
-                <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-white">Complete Payment</h2>
-                <p className="text-xs sm:text-sm text-neutral-400">{items.length} item(s)</p>
-              </div>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-2">
+              <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
             </div>
-            <button
-              onClick={onClose}
-              className="text-neutral-400 hover:text-white transition-colors flex-shrink-0"
-            >
-              <X className="h-5 w-5 sm:h-6 sm:w-6" />
-            </button>
-          </div>
-
-          {/* FIXED: Items Summary - No nested scroll, uses natural flow */}
-          <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-            <h3 className="text-xs sm:text-sm font-semibold text-neutral-400 mb-2 sm:mb-3">Your Items:</h3>
-            <div className="space-y-2">
-              {items.map((item) => (
-                <div key={item.id} className="flex justify-between text-xs sm:text-sm gap-2">
-                  <span className="text-white truncate">{item.service} - {item.honor}</span>
-                  <span className="text-[#C9A961] font-semibold whitespace-nowrap">{formatCurrency(item.current_bid)}</span>
-                </div>
-              ))}
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Complete Payment</h2>
+              <p className="text-xs sm:text-sm text-neutral-400">{items.length} item(s)</p>
             </div>
           </div>
-
-          {/* Processing Fee Checkbox */}
-          <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-            <label className="flex items-start gap-2 sm:gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={coverFee}
-                onChange={(e) => setCoverFee(e.target.checked)}
-                className="mt-0.5 sm:mt-1 h-4 w-4 sm:h-5 sm:w-5 rounded border-blue-500 bg-neutral-800 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 flex-shrink-0"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm sm:text-base text-white font-medium mb-1">
-                  Cover processing fees (recommended)
-                </div>
-                <div className="text-xs text-neutral-400">
-                  Help us maximize your donation by covering the {formatCurrency(paymentDetails.processingFee)} credit card processing fee.
-                </div>
-              </div>
-            </label>
-          </div>
-
-          {/* Payment Breakdown */}
-          <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2">
-            <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-neutral-400">Subtotal:</span>
-              <span className="text-white font-semibold">{formatCurrency(paymentDetails.subtotal)}</span>
-            </div>
-            {coverFee && (
-              <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-neutral-400">Processing Fee:</span>
-                <span className="text-white font-semibold">{formatCurrency(paymentDetails.processingFee)}</span>
-              </div>
-            )}
-            <div className="border-t border-neutral-700 pt-2 mt-2">
-              <div className="flex justify-between">
-                <span className="text-sm sm:text-base text-white font-bold">Total:</span>
-                <span className="text-[#C9A961] font-bold text-lg sm:text-xl">{formatCurrency(paymentDetails.total)}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* FIXED: Stripe Elements - Proper touch handling */}
-          <div style={{ touchAction: 'pan-y' }}>
-            <Elements
-              stripe={stripePromise}
-              options={{
-                clientSecret,
-                appearance: {
-                  theme: 'night',
-                  variables: {
-                    colorPrimary: '#C9A961',
-                    colorBackground: '#171717',
-                    colorText: '#ffffff',
-                    colorDanger: '#ef4444',
-                    borderRadius: '8px',
-                  },
-                },
-              }}
-            >
-              <CheckoutForm
-                onSuccess={onSuccess}
-                onClose={onClose}
-                bidderEmail={bidderEmail}
-                total={paymentDetails.total}
-              />
-            </Elements>
+          <button
+            onClick={onClose}
+            className="text-neutral-400 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
         </div>
+
+        {/* Items Summary - SCROLL FIX: Removed max-h and overflow */}
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <h3 className="text-xs sm:text-sm font-semibold text-neutral-400 mb-2 sm:mb-3">Your Items:</h3>
+          <div className="space-y-2">
+            {items.map((item) => (
+              <div key={item.id} className="flex justify-between text-xs sm:text-sm">
+                <span className="text-white">{item.service} - {item.honor}</span>
+                <span className="text-[#C9A961] font-semibold">{formatCurrency(item.current_bid)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Processing Fee Checkbox */}
+        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <label className="flex items-start gap-2 sm:gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={coverFee}
+              onChange={(e) => setCoverFee(e.target.checked)}
+              className="mt-0.5 sm:mt-1 h-4 w-4 sm:h-5 sm:w-5 rounded border-blue-500 bg-neutral-800 text-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0"
+            />
+            <div className="flex-1">
+              <div className="text-sm sm:text-base text-white font-medium mb-1">
+                Cover processing fees (recommended)
+              </div>
+              <div className="text-xs text-neutral-400">
+                Help us maximize your donation by covering the {formatCurrency(paymentDetails.processingFee)} credit card processing fee.
+              </div>
+            </div>
+          </label>
+        </div>
+
+        {/* Payment Breakdown */}
+        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2">
+          <div className="flex justify-between text-xs sm:text-sm">
+            <span className="text-neutral-400">Subtotal:</span>
+            <span className="text-white font-semibold">{formatCurrency(paymentDetails.subtotal)}</span>
+          </div>
+          {coverFee && (
+            <div className="flex justify-between text-xs sm:text-sm">
+              <span className="text-neutral-400">Processing Fee:</span>
+              <span className="text-white font-semibold">{formatCurrency(paymentDetails.processingFee)}</span>
+            </div>
+          )}
+          <div className="border-t border-neutral-700 pt-2 mt-2">
+            <div className="flex justify-between">
+              <span className="text-sm sm:text-base text-white font-bold">Total:</span>
+              <span className="text-[#C9A961] font-bold text-lg sm:text-xl">{formatCurrency(paymentDetails.total)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stripe Elements */}
+        <Elements
+          stripe={stripePromise}
+          options={{
+            clientSecret,
+            appearance: {
+              theme: 'night',
+              variables: {
+                colorPrimary: '#C9A961',
+                colorBackground: '#171717',
+                colorText: '#ffffff',
+                colorDanger: '#ef4444',
+                borderRadius: '8px',
+              },
+            },
+          }}
+        >
+          <CheckoutForm
+            onSuccess={onSuccess}
+            onClose={onClose}
+            bidderEmail={bidderEmail}
+            total={paymentDetails.total}
+          />
+        </Elements>
       </div>
     </div>
   );
@@ -255,10 +253,7 @@ function CheckoutForm({ onSuccess, onClose, bidderEmail, total }: {
         <label className="block text-xs sm:text-sm font-medium text-neutral-300 mb-2">
           Payment Details
         </label>
-        {/* FIXED: Wrapper with proper touch handling for Stripe Elements */}
-        <div style={{ touchAction: 'pan-y' }}>
-          <PaymentElement />
-        </div>
+        <PaymentElement />
       </div>
 
       {error && (
