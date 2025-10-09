@@ -97,7 +97,7 @@ export default async function Home() {
                 {holidayName} Honors Auction
               </h1>
               <p className="text-base sm:text-lg md:text-xl text-[#C9A961]/80 max-w-2xl mx-auto leading-relaxed">
-                Bid on meaningful honors for the High Holy Days
+                Bid on meaningful honors and help support Bais Menachem.
               </p>
             </div>
 
