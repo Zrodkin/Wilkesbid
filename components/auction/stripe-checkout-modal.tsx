@@ -32,6 +32,16 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     total: 0,
   });
 
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+    
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+
   useEffect(() => {
     createPaymentIntent();
   }, [coverFee]);
