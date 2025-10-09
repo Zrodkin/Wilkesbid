@@ -72,18 +72,24 @@ export async function POST(request: Request) {
     // Calculate total with optional fee
     const { total, processingFee } = calculatePaymentTotal(subtotal, coverProcessingFee);
     
-    // Create payment intent
+    // Build payment method types based on amount
+    const paymentMethodTypes = ['card', 'cashapp', 'us_bank_account', 'link'];
+    
+    // Add Affirm only if total is $35 or more
+    if (total >= 35) {
+      paymentMethodTypes.push('affirm');
+    }
+    
+    // Add Klarna only if total is $35 or more (Klarna also has minimums)
+    if (total >= 35) {
+      paymentMethodTypes.push('klarna');
+    }
+    
+    // Create payment intent with conditional payment methods
     const paymentIntent = await stripe.paymentIntents.create({
       amount: dollarsToCents(total),
       currency: 'usd',
-     payment_method_types: [
-    'card',
-    'cashapp',
-    'us_bank_account',
-    'link',
-    'affirm',
-    'klarna',
-  ],
+      payment_method_types: paymentMethodTypes,
       metadata: generatePaymentMetadata(
         itemIds,
         bidderEmail,
