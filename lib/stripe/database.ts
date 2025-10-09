@@ -1,5 +1,5 @@
 // lib/stripe/database.ts
-import { createClient } from '@/lib/supabase/server';
+import { createServiceClient as createClient } from '@/lib/supabase/service';
 
 export interface StripeAccount {
   id: string;
