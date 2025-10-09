@@ -89,20 +89,20 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-6 sm:p-8 max-w-lg w-full my-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-2">
-              <CreditCard className="h-6 w-6 text-[#C9A961]" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">Complete Payment</h2>
-              <p className="text-sm text-neutral-400">{items.length} item(s)</p>
-            </div>
-          </div>
+ return (
+  <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="bg-neutral-900 border-2 border-[#C9A961]/30 rounded-2xl p-4 sm:p-6 md:p-8 max-w-lg w-full my-4 sm:my-8 max-h-[95vh] overflow-y-auto">
+      {/* Header */}
+<div className="flex items-start justify-between mb-4 sm:mb-6">
+  <div className="flex items-center gap-2 sm:gap-3">
+    <div className="bg-[#C9A961]/10 border border-[#C9A961]/30 rounded-lg p-1.5 sm:p-2">
+      <CreditCard className="h-5 w-5 sm:h-6 sm:w-6 text-[#C9A961]" />
+    </div>
+    <div>
+      <h2 className="text-xl sm:text-2xl font-bold text-white">Complete Payment</h2>
+      <p className="text-xs sm:text-sm text-neutral-400">{items.length} item(s)</p>
+    </div>
+  </div>
           <button
             onClick={onClose}
             className="text-neutral-400 hover:text-white transition-colors"
@@ -112,8 +112,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Items Summary */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4 mb-6 max-h-48 overflow-y-auto">
-          <h3 className="text-sm font-semibold text-neutral-400 mb-3">Your Items:</h3>
+<div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 max-h-32 sm:max-h-48 overflow-y-auto">          <h3 className="text-sm font-semibold text-neutral-400 mb-3">Your Items:</h3>
           <div className="space-y-2">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between text-sm">
@@ -125,7 +124,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Processing Fee Checkbox */}
-        <div className="bg-blue-900/20 border border-blue-700 rounded-lg p-4 mb-6">
+<div className="bg-blue-900/20 border border-blue-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -145,7 +144,7 @@ export function StripeCheckoutModal({ items, bidderEmail, onClose, onSuccess }: 
         </div>
 
         {/* Payment Breakdown */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-4 mb-6 space-y-2">
+<div className="bg-neutral-800/50 border border-neutral-700 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6 space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-neutral-400">Subtotal:</span>
             <span className="text-white font-semibold">{formatCurrency(paymentDetails.subtotal)}</span>
