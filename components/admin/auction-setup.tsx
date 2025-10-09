@@ -488,7 +488,7 @@ export function AuctionSetup({ onSuccess }: AuctionSetupProps) {
       Payment settings (Stripe integration and installments) are configured globally in the admin dashboard.
     </p>
     <p className="text-xs text-blue-300">
-      Winners will be able to pay using Stripe if it's connected, or use the manual payment links as a fallback.
+      Winners will be able to pay using Stripe if it&apos;s connected, or use the manual payment links as a fallback.
     </p>
   </div>
 )}
