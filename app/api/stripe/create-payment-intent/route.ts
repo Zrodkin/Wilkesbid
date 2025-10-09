@@ -101,6 +101,10 @@ export async function POST(request: Request) {
     }, {
       stripeAccount: stripeAccount.stripe_account_id,
     });
+
+    console.log('Requested payment methods:', paymentMethodTypes);
+console.log('Stripe accepted payment methods:', paymentIntent.payment_method_types);
+console.log('Payment amount:', total);
     
     // Store payment record
     await supabase.from('stripe_payments').insert({
