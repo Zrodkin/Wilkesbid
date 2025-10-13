@@ -53,10 +53,10 @@ export function AuctionHistoryModal({ onClose, onSelectAuction }: AuctionHistory
       // Get stats for each auction
       const auctionsWithStats = await Promise.all(
         auctionsData.map(async (auction) => {
-          const { data: items } = await supabase
-            .from('auction_items')
-            .select('current_bid, current_bidder_id, is_paid')
-            .eq('auction_id', auction.id);
+       const { data: items } = await supabase
+  .from('auction_items')
+  .select('current_bid, starting_bid, current_bidder_id, is_paid')
+  .eq('auction_id', auction.id);
 
           const totalItems = items?.length || 0;
           const totalBids = items?.filter((item) => item.current_bidder_id).length || 0;
