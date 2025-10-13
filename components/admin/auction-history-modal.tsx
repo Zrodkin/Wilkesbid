@@ -60,7 +60,9 @@ export function AuctionHistoryModal({ onClose, onSelectAuction }: AuctionHistory
 
           const totalItems = items?.length || 0;
           const totalBids = items?.filter((item) => item.current_bidder_id).length || 0;
-          const totalAmount = items?.reduce((sum, item) => sum + item.current_bid, 0) || 0;
+const totalAmount = items?.reduce((sum, item) => {
+  return item.current_bid > item.starting_bid ? sum + item.current_bid : sum;
+}, 0) || 0;
           const paidAmount =
             items?.filter((item) => item.is_paid).reduce((sum, item) => sum + item.current_bid, 0) || 0;
 

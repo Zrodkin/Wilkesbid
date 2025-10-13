@@ -12,6 +12,7 @@ interface BidModalProps {
     service: string;
     honor: string;
     current_bid: number;
+    starting_bid: number; 
     minimum_increment: number;
   };
   onClose: () => void;
@@ -27,8 +28,10 @@ export function BidModal({ item, onClose }: BidModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<BidFormData>();
   
-  const minimumBid = item.current_bid + item.minimum_increment;
-  
+const minimumBid = item.current_bid === item.starting_bid 
+  ? item.starting_bid 
+  : item.current_bid + item.minimum_increment;
+
   const onSubmit = async (data: BidFormData) => {
     setIsSubmitting(true);
     

@@ -251,7 +251,9 @@ export function AdminDashboard() {
     );
   });
 
-  const totalBids = items.reduce((sum, item) => sum + (item.current_bid || 0), 0);
+const totalBids = items.reduce((sum, item) => {
+  return item.current_bid > item.starting_bid ? sum + item.current_bid : sum;
+}, 0);
   const itemsWithBids = items.filter((item) => !!item.current_bidder).length;
   const paidItems = items.filter((item) => item.is_paid).length;
   const totalPaidAmount = items.filter((item) => item.is_paid).reduce((sum, item) => sum + (item.current_bid || 0), 0);
